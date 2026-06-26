@@ -68,7 +68,7 @@ A modern, full-stack e-commerce web application for buying and selling construct
 - `uploads/`: Directory for stored product images.
 
 ## 🔹 DESIGN PHILOSOPHY
-The platform uses a clean, light-themed color palette (white, light grey, soft blue, beige, light yellow) to maintain a professional and minimal design suitable for the construction industry, mirroring the layout and robust user experience of Amazon.com. It incorporates smooth micro-interactions, responsive design, and intuitive navigation.
+The platform uses a clean, light-themed color palette (white, light grey, soft blue, beige, light yellow) to maintain a professional and minimal design suitable for the construction industry, mirroring the layout and robust user experience. It incorporates smooth micro-interactions, responsive design, and intuitive navigation.
 
 ## 🔹 LICENSE
 MIT License

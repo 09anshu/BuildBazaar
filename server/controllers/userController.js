@@ -14,7 +14,7 @@ const generateToken = (id) => {
 const authUser = async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
 
   if (user && (await user.matchPassword(password))) {
     res.json({
@@ -35,7 +35,7 @@ const authUser = async (req, res) => {
 const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
 
   if (userExists) {
     res.status(400).json({ message: 'User already exists' });
@@ -73,7 +73,7 @@ const forgotPassword = async (req, res) => {
     return;
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
 
   if (!user) {
     res.status(404).json({ message: 'No account found for that email address' });

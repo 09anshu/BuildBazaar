@@ -3,6 +3,9 @@ node_modules/
 client/node_modules/
 server/node_modules/
 
+# Gemini / Agent workspace
+.agents/
+
 # Environment Variables
 .env
 .env.local

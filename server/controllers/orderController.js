@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const { createNotification } = require('./notificationController');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -30,6 +31,18 @@ const addOrderItems = async (req, res) => {
     });
 
     const createdOrder = await order.save();
+
+    try {
+      await createNotification(req.user._id, {
+        type: 'order_placed',
+        title: 'Order Placed Successfully',
+        message: `Your order #${createdOrder._id.toString().slice(-6).toUpperCase()} has been placed. Total: ₹${createdOrder.totalPrice.toLocaleString()}`,
+        link: `/order/${createdOrder._id}`,
+      });
+    } catch (notifError) {
+      console.error('Notification error (order_placed):', notifError.message);
+    }
+
     res.status(201).json(createdOrder);
   }
 };
@@ -67,6 +80,18 @@ const updateOrderToPaid = async (req, res) => {
     };
 
     const updatedOrder = await order.save();
+
+    try {
+      await createNotification(order.user, {
+        type: 'order_paid',
+        title: 'Payment Confirmed',
+        message: `Payment for order #${order._id.toString().slice(-6).toUpperCase()} has been confirmed.`,
+        link: `/order/${order._id}`,
+      });
+    } catch (notifError) {
+      console.error('Notification error (order_paid):', notifError.message);
+    }
+
     res.json(updatedOrder);
   } else {
     res.status(404).json({ message: 'Order not found' });
@@ -84,6 +109,18 @@ const updateOrderToDelivered = async (req, res) => {
     order.deliveredAt = Date.now();
 
     const updatedOrder = await order.save();
+
+    try {
+      await createNotification(order.user, {
+        type: 'order_delivered',
+        title: 'Order Delivered',
+        message: `Your order #${order._id.toString().slice(-6).toUpperCase()} has been delivered!`,
+        link: `/order/${order._id}`,
+      });
+    } catch (notifError) {
+      console.error('Notification error (order_delivered):', notifError.message);
+    }
+
     res.json(updatedOrder);
   } else {
     res.status(404).json({ message: 'Order not found' });

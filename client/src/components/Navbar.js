@@ -8,7 +8,6 @@ import {
   Menu,
   LogOut,
   LayoutDashboard,
-  Bell,
   ChevronDown,
   MapPin,
   Factory,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { logout } from '../store/slices/authSlice';
 import { saveShippingAddress } from '../store/slices/cartSlice';
+import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
   const [keyword, setKeyword] = useState('');
@@ -39,7 +39,7 @@ const Navbar = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems, shippingAddress } = useSelector((state) => state.cart);
   const cartCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
-  const notificationCount = 3;
+
 
   useEffect(() => {
     setAddress(shippingAddress?.address || '');
@@ -324,12 +324,7 @@ const Navbar = () => {
             </Link>
           )}
 
-          <button className="relative hidden items-center justify-center rounded-full border border-white/15 bg-white/5 p-2 transition-colors hover:border-[#f5a623]/50 hover:bg-white/10 md:inline-flex" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#f5a623] px-1 text-[10px] font-bold text-slate-950">
-              {notificationCount}
-            </span>
-          </button>
+          <NotificationDropdown />
 
           <Link
             to="/cart"

@@ -173,6 +173,35 @@ const createEnquiry = async (req, res) => {
   }
 };
 
+// @desc    Request return for an item
+// @route   PUT /api/orders/:id/return-item
+// @access  Private
+const requestItemReturn = async (req, res) => {
+  const { productId, reason } = req.body;
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    if (order.user.toString() !== req.user._id.toString()) {
+      res.status(401).json({ message: 'Not authorized to update this order' });
+      return;
+    }
+
+    const item = order.orderItems.find((x) => x.product.toString() === productId);
+
+    if (item) {
+      item.returnStatus = 'requested';
+      item.returnReason = reason;
+
+      const updatedOrder = await order.save();
+      res.json(updatedOrder);
+    } else {
+      res.status(404).json({ message: 'Item not found in order' });
+    }
+  } else {
+    res.status(404).json({ message: 'Order not found' });
+  }
+};
+
 module.exports = {
   addOrderItems,
   getOrderById,
@@ -181,4 +210,5 @@ module.exports = {
   getMyOrders,
   getOrders,
   createEnquiry,
+  requestItemReturn,
 };

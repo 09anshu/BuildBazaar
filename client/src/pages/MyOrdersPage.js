@@ -8,6 +8,11 @@ import { Package, ChevronRight, ShoppingBag } from 'lucide-react';
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnOrderId, setReturnOrderId] = useState(null);
+  const [returnItemId, setReturnItemId] = useState(null);
+  const [returnReason, setReturnReason] = useState('');
+  const [returnLoading, setReturnLoading] = useState(false);
 
   const { userInfo } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -35,6 +40,59 @@ const MyOrdersPage = () => {
       fetchOrders();
     }
   }, [navigate, userInfo]);
+
+  const handleReturnClick = (orderId, productId) => {
+    setReturnOrderId(orderId);
+    setReturnItemId(productId);
+    setShowReturnModal(true);
+  };
+
+  const submitReturnRequest = async (e) => {
+    e.preventDefault();
+    if (!returnReason.trim()) {
+      toast.error('Please provide a reason for return');
+      return;
+    }
+    
+    setReturnLoading(true);
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+      
+      await axios.put(`/api/orders/${returnOrderId}/return-item`, {
+        productId: returnItemId,
+        reason: returnReason
+      }, config);
+      
+      toast.success('Return requested successfully');
+      setShowReturnModal(false);
+      setReturnReason('');
+      
+      // Update local state to reflect requested status
+      setOrders(prevOrders => prevOrders.map(order => {
+        if (order._id === returnOrderId) {
+          return {
+            ...order,
+            orderItems: order.orderItems.map(item => {
+              if (item.product === returnItemId) {
+                return { ...item, returnStatus: 'requested' };
+              }
+              return item;
+            })
+          };
+        }
+        return order;
+      }));
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setReturnLoading(false);
+    }
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen pt-10 px-4 pb-20">
@@ -138,9 +196,17 @@ const MyOrdersPage = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="hidden md:block">
+                        <div className="hidden md:block text-right">
                           <Link to={`/product/${item.product}/review`} className="text-sm text-blue-600 hover:underline block mb-2">Write a product review</Link>
-                          <button className="text-sm text-blue-600 hover:underline">Return or replace items</button>
+                          {item.returnStatus && item.returnStatus !== 'none' ? (
+                            <span className="text-sm font-semibold text-amber-600">
+                              Return {item.returnStatus.charAt(0).toUpperCase() + item.returnStatus.slice(1)}
+                            </span>
+                          ) : (
+                            <button onClick={() => handleReturnClick(order._id, item.product)} className="text-sm text-blue-600 hover:underline">
+                              Return or replace items
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -151,6 +217,45 @@ const MyOrdersPage = () => {
           </div>
         )}
       </div>
+
+      {showReturnModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-gray-50 p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">Return or Replace Item</h3>
+            </div>
+            <form onSubmit={submitReturnRequest} className="p-6">
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Why are you returning this?</label>
+                <textarea 
+                  rows="3" 
+                  required
+                  placeholder="e.g. Item is damaged, changed my mind, etc."
+                  value={returnReason} 
+                  onChange={(e) => setReturnReason(e.target.value)} 
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-amber-400 outline-none" 
+                ></textarea>
+              </div>
+              <div className="flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setShowReturnModal(false)}
+                  className="flex-1 py-3 rounded-lg font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={returnLoading}
+                  className="flex-1 py-3 rounded-lg font-bold text-slate-900 bg-amber-400 hover:bg-amber-500 transition-colors flex justify-center items-center"
+                >
+                  {returnLoading ? <div className="h-5 w-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div> : 'Submit Return'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

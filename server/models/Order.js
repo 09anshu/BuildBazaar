@@ -31,6 +31,14 @@ const orderSchema = mongoose.Schema(
           required: true,
           ref: 'Product',
         },
+        returnStatus: {
+          type: String,
+          enum: ['none', 'requested', 'approved', 'rejected'],
+          default: 'none'
+        },
+        returnReason: {
+          type: String
+        },
       },
     ],
     shippingAddress: {

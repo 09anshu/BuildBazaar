@@ -11,7 +11,8 @@ import {
   Settings,
   Shield,
   Zap,
-  Weight
+  Weight,
+  Star
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -330,6 +331,39 @@ const ProductPage = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+
+              {/* Reviews Section */}
+              <div className="mt-16">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h2>
+                {(!product.reviews || product.reviews.length === 0) && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center">
+                    <p className="text-gray-500">No reviews yet.</p>
+                  </div>
+                )}
+                <div className="space-y-6">
+                  {product.reviews && product.reviews.map((review, index) => (
+                    <div key={index} className="bg-white border border-gray-200 rounded-2xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="font-bold text-gray-900">{review.name}</h4>
+                          <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${
+                                star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-700 text-sm leading-relaxed">{review.comment}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

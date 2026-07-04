@@ -12,9 +12,9 @@ const {
   getUserById,
   updateUser,
 } = require('../controllers/userController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, admin, staff } = require('../middleware/authMiddleware');
 
-router.route('/').post(registerUser).get(protect, admin, getUsers);
+router.route('/').post(registerUser).get(protect, staff, getUsers);
 router.post('/login', authUser);
 router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:token', resetPassword);
@@ -25,7 +25,7 @@ router
 router
   .route('/:id')
   .delete(protect, admin, deleteUser)
-  .get(protect, admin, getUserById)
+  .get(protect, staff, getUserById)
   .put(protect, admin, updateUser);
 
 module.exports = router;

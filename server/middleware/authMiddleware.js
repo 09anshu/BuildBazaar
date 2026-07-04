@@ -41,4 +41,28 @@ const seller = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, seller };
+const sales = (req, res, next) => {
+  if (req.user && (req.user.role === 'sales' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not authorized as sales' });
+  }
+};
+
+const support = (req, res, next) => {
+  if (req.user && (req.user.role === 'support' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not authorized as support' });
+  }
+};
+
+const staff = (req, res, next) => {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'sales' || req.user.role === 'support')) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not authorized as staff' });
+  }
+};
+
+module.exports = { protect, admin, seller, sales, support, staff };

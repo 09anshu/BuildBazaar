@@ -25,6 +25,8 @@ import ProfilePage from './pages/ProfilePage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import AllProductsPage from './pages/AllProductsPage';
 import ReviewProductPage from './pages/ReviewProductPage';
+import SalesDashboard from './pages/SalesDashboard';
+import SupportDashboard from './pages/SupportDashboard';
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/myorders" element={<MyOrdersPage />} />
+            <Route path="/sales/dashboard" element={<SalesDashboard />} />
+            <Route path="/support/dashboard" element={<SupportDashboard />} />
 
             {/* Search, Category, and All Products routes */}
             <Route path="/all-products" element={<AllProductsPage />} />

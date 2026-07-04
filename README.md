@@ -1,6 +1,6 @@
 # 🏗️ BuildBazaar — Construction E-Commerce Platform
 
-A modern, full-stack e-commerce web application for buying and selling construction materials, tools, machinery, and safety equipment. Designed with an Amazon-inspired user experience, BuildBazaar connects buyers and sellers across the construction industry.
+A modern, full-stack e-commerce web application for buying and selling construction materials, tools, machinery, and safety equipment. Designed with an Amazon-inspired user experience, BuildBazaar connects buyers and sellers across the construction industry — with dedicated dashboards for Admin, Sales, and Customer Support teams.
 
 ---
 
@@ -20,7 +20,7 @@ A modern, full-stack e-commerce web application for buying and selling construct
 ## 🔹 Features
 
 ### 🛒 Shopping Experience
-- Browse products by category (Cement, Steel, Tools, Machinery, Rentals, Safety Equipment)
+- Browse products by category (Cement, Steel, Tools, Machinery, Rentals, Safety Equipment, Electrical, Plumbing, Paint)
 - Advanced filtering by Category, Brand, Material Type, Price Range, and Availability
 - Full-text search across all products
 - Add to cart with quantity management
@@ -31,7 +31,7 @@ A modern, full-stack e-commerce web application for buying and selling construct
 - Secure login with JWT-based sessions
 - Profile management (name, email, password update)
 - Forgot password flow with reset token link
-- Role-based access control (Customer, Seller, Admin)
+- Role-based access control with 6 roles: `customer`, `seller`, `admin`, `sales`, `support`
 
 ### 🔔 Real-Time Notifications
 - In-app notification bell with live unread count badge
@@ -44,17 +44,7 @@ A modern, full-stack e-commerce web application for buying and selling construct
 - Complete checkout flow: Shipping → Payment → Place Order → Confirmation
 - Order history with status tracking
 - Payment integration (mock)
-- Seller/Admin can mark orders as delivered
-
-### 📊 Seller Dashboard
-- Manage products (CRUD operations with image upload)
-- View and fulfill incoming orders
-- Sales analytics overview
-
-### 🛡️ Admin Panel
-- Full control over users, products, and orders
-- User role management
-- System-wide order oversight
+- Staff can mark orders as delivered
 
 ### 🤖 AI & Support
 - AI-powered product recommendations based on categories
@@ -64,6 +54,54 @@ A modern, full-stack e-commerce web application for buying and selling construct
 - GPS-based site location capture
 - Manual address entry for delivery
 - Saved shipping addresses for checkout
+
+---
+
+## 🔹 Role-Based Dashboards (RBAC)
+
+The platform features **three segregated dashboards**, ensuring each team only has access to the tools they need.
+
+### 🛡️ Admin Panel (`/dashboard`)
+> **Who accesses it**: Users with `role: "admin"`
+
+| Tab | Capabilities |
+|-----|-------------|
+| **Overview** | Revenue stats, pending orders, total products, total users, quick-access links to Sales & Support dashboards |
+| **Products** | Full CRUD — create, edit, and delete any product in the catalog |
+| **Orders** | View all orders (standard + enquiries), mark as delivered |
+| **Users & Roles** | View all users, change any user's role via dropdown, delete users, **create new staff accounts** with role assignment |
+| **Team Monitor** | View Sales & Support team members, enquiry summaries, fulfillment stats, direct links to sub-dashboards |
+
+> **Supervisor Rights**: Admins have default access to both the Sales and Support dashboards.
+
+### 📈 Sales Panel (`/sales/dashboard`)
+> **Who accesses it**: Users with `role: "sales"`
+
+| Tab | Capabilities |
+|-----|-------------|
+| **Quotes & Enquiries** | Kanban board with 4 columns (New → Quoted → Won → Rejected) for managing bulk enquiries. Cannot see standard single-item orders. |
+| **Offer Management** | Create, toggle on/off, and delete promotional discount codes |
+
+> **Restrictions**: Cannot delete user accounts or modify the main product catalog.
+
+### 🎧 Support Panel (`/support/dashboard`)
+> **Who accesses it**: Users with `role: "support"`
+
+| Tab | Capabilities |
+|-----|-------------|
+| **Order Tracking** | View all standard orders, update delivery status (mark as delivered), payment & delivery status badges |
+| **User Lookup** | Search any user by name, email, or phone number to view account details |
+
+> **Restrictions**: Cannot access Quotes Kanban, create discount codes, or delete products.
+
+### 🔒 Security Implementation
+
+| Component | Details |
+|-----------|---------|
+| **Backend Middleware** | `protect`, `admin`, `seller`, `sales`, `support`, `staff` guards in `authMiddleware.js` |
+| **Dynamic Navigation** | Navbar automatically shows/hides dashboard links based on user's JWT role |
+| **Frontend Guards** | Each dashboard component validates role on mount, redirects unauthorized users to login |
+| **Redux State** | Dedicated slices (`offerSlice`, `notificationSlice`, `orderSlice`) for isolated state management |
 
 ---
 
@@ -80,7 +118,7 @@ A modern, full-stack e-commerce web application for buying and selling construct
 | PUT    | `/profile`                  | Private | Update user profile       |
 | GET    | `/`                         | Admin   | Get all users             |
 | GET    | `/:id`                      | Admin   | Get user by ID            |
-| PUT    | `/:id`                      | Admin   | Update user               |
+| PUT    | `/:id`                      | Admin   | Update user (including role) |
 | DELETE | `/:id`                      | Admin   | Delete user               |
 
 ### Products — `/api/products`
@@ -100,8 +138,17 @@ A modern, full-stack e-commerce web application for buying and selling construct
 | GET    | `/myorders`                 | Private | Get logged-in user's orders |
 | GET    | `/:id`                      | Private | Get order by ID           |
 | PUT    | `/:id/pay`                  | Private | Mark order as paid        |
-| PUT    | `/:id/deliver`              | Seller  | Mark order as delivered   |
-| GET    | `/`                         | Admin   | Get all orders            |
+| PUT    | `/:id/deliver`              | Staff   | Mark order as delivered   |
+| GET    | `/`                         | Staff   | Get all orders            |
+
+### Offers — `/api/offers`
+| Method | Endpoint                    | Access  | Description               |
+| ------ | --------------------------- | ------- | ------------------------- |
+| GET    | `/`                         | Public  | Get active offers         |
+| GET    | `/all`                      | Sales   | Get all offers (active + inactive) |
+| POST   | `/`                         | Sales   | Create a new offer        |
+| PUT    | `/:id`                      | Sales   | Update an offer           |
+| DELETE | `/:id`                      | Sales   | Delete an offer           |
 
 ### Notifications — `/api/notifications`
 | Method | Endpoint                    | Access  | Description               |
@@ -128,13 +175,15 @@ construction_equip/
 │   │   ├── components/
 │   │   │   ├── Chatbot.js           # AI chatbot widget
 │   │   │   ├── Footer.js            # Site footer
-│   │   │   ├── Navbar.js            # Top navigation bar
+│   │   │   ├── Navbar.js            # Top navigation bar (role-based links)
 │   │   │   ├── NotificationDropdown.js  # Bell icon + notification panel
 │   │   │   └── ProductCard.js       # Reusable product card
 │   │   ├── pages/
 │   │   │   ├── AllProductsPage.js   # Browse & filter all products
 │   │   │   ├── CartPage.js          # Shopping cart
-│   │   │   ├── DashboardPage.js     # Seller/Admin dashboard
+│   │   │   ├── DashboardPage.js     # Admin Panel (Overview, Products, Orders, Users, Teams)
+│   │   │   ├── SalesDashboard.js    # Sales Panel (Quotes Kanban, Offer Management)
+│   │   │   ├── SupportDashboard.js  # Support Panel (Order Tracking, User Lookup)
 │   │   │   ├── ForgotPasswordPage.js
 │   │   │   ├── HomePage.js          # Landing page with categories
 │   │   │   ├── LoginPage.js
@@ -152,6 +201,7 @@ construction_equip/
 │   │   │   │   ├── authSlice.js     # Authentication state
 │   │   │   │   ├── cartSlice.js     # Cart state
 │   │   │   │   ├── notificationSlice.js  # Notifications state
+│   │   │   │   ├── offerSlice.js    # Offers/promotions state
 │   │   │   │   ├── orderSlice.js    # Orders state
 │   │   │   │   └── productSlice.js  # Products state
 │   │   │   └── index.js            # Redux store configuration
@@ -165,28 +215,32 @@ construction_equip/
 │   ├── config/
 │   │   └── db.js                    # MongoDB connection
 │   ├── controllers/
-│   │   ├── notificationController.js
-│   │   ├── orderController.js
-│   │   ├── productController.js
-│   │   └── userController.js
+│   │   ├── notificationController.js  # Notification CRUD + helper
+│   │   ├── offerController.js       # Offer/promo CRUD
+│   │   ├── orderController.js       # Order management + auto-notifications
+│   │   ├── productController.js     # Product CRUD + reviews
+│   │   └── userController.js        # Auth, profile, user management
 │   ├── middleware/
-│   │   └── authMiddleware.js        # JWT protect, admin, seller guards
+│   │   └── authMiddleware.js        # JWT protect, admin, seller, sales, support, staff guards
 │   ├── models/
-│   │   ├── Notification.js
-│   │   ├── Order.js
-│   │   ├── Product.js
-│   │   └── User.js
+│   │   ├── Notification.js          # Notification schema
+│   │   ├── Offer.js                 # Discount/promo schema
+│   │   ├── Order.js                 # Order schema (standard + enquiry)
+│   │   ├── Product.js               # Product schema with wholesale tiers
+│   │   └── User.js                  # User schema with role enum
 │   ├── routes/
 │   │   ├── notificationRoutes.js
+│   │   ├── offerRoutes.js
 │   │   ├── orderRoutes.js
 │   │   ├── productRoutes.js
 │   │   ├── uploadRoutes.js
 │   │   └── userRoutes.js
 │   ├── uploads/                     # Stored product images
-│   ├── seed.js                      # Database seeder script
+│   ├── seed.js                      # Database seeder (products + admin user)
 │   ├── server.js                    # Express app entry point
 │   └── package.json
 │
+├── Dashboard_Roles_Breakdown.md     # RBAC architecture documentation
 ├── package.json                     # Root scripts (concurrently)
 └── README.md
 ```
@@ -221,7 +275,7 @@ construction_equip/
    NODE_ENV=development
    ```
 
-4. **Seed the database** (optional but recommended):
+4. **Seed the database** (optional but recommended — creates products + admin user):
    ```bash
    cd server
    node seed.js
@@ -236,6 +290,13 @@ construction_equip/
    - **Frontend** → http://localhost:3000
    - **Backend API** → http://localhost:5000
 
+### Default Admin Login
+After seeding, log in with:
+- **Email**: `admin@buildbazaar.com`
+- **Password**: `Admin@123`
+
+From the Admin Panel → **Users & Roles** tab, you can create new staff accounts or promote existing users to `sales` / `support` roles.
+
 ---
 
 ## 🔹 Available Scripts
@@ -249,6 +310,26 @@ construction_equip/
 
 ---
 
+## 🔹 User Roles & Access Matrix
+
+| Feature | Customer | Seller | Sales | Support | Admin |
+|---------|:--------:|:------:|:-----:|:-------:|:-----:|
+| Browse & buy products | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Manage own profile | ✅ | ✅ | ✅ | ✅ | ✅ |
+| View own orders | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Create/edit products | ❌ | ✅ | ❌ | ❌ | ✅ |
+| Seller Dashboard | ❌ | ✅ | ❌ | ❌ | ✅ |
+| Quotes Kanban | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Offer Management | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Order Tracking (all) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| User Lookup | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Mark orders delivered | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Manage users & roles | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Delete products/users | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Team Monitor | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+---
+
 ## 🔹 Design Philosophy
 
 BuildBazaar uses a dark-themed, premium navbar with amber/gold accent colors (`#f5a623`) paired with clean white content areas. The UI prioritizes:
@@ -257,6 +338,7 @@ BuildBazaar uses a dark-themed, premium navbar with amber/gold accent colors (`#
 - **Responsive design** across all screen sizes
 - **Smooth micro-interactions** with Framer Motion animations
 - **Intuitive navigation** with category-based browsing and full-text search
+- **Role-segregated dashboards** with dedicated sidebar navigation and stats
 - **Accessibility** with proper ARIA labels and semantic HTML
 
 ---

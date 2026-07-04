@@ -306,10 +306,22 @@ const Navbar = () => {
               <div className="absolute top-full right-0 z-50 hidden w-48 rounded-md bg-white py-2 text-black shadow-lg group-hover:block">
                 <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">My Profile</Link>
                 <Link to="/myorders" className="block px-4 py-2 hover:bg-gray-100">My Orders</Link>
-                {(userInfo.role === 'seller' || userInfo.role === 'admin') && (
+                {(userInfo.role === 'admin' || userInfo.role === 'seller') && (
                   <Link to="/dashboard" className="flex items-center px-4 py-2 hover:bg-gray-100">
                     <LayoutDashboard className="h-4 w-4 mr-2" />
-                    Dashboard
+                    Admin Dashboard
+                  </Link>
+                )}
+                {(userInfo.role === 'admin' || userInfo.role === 'sales') && (
+                  <Link to="/sales/dashboard" className="flex items-center px-4 py-2 hover:bg-gray-100 text-[#f5a623]">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Sales Tools
+                  </Link>
+                )}
+                {(userInfo.role === 'admin' || userInfo.role === 'support') && (
+                  <Link to="/support/dashboard" className="flex items-center px-4 py-2 hover:bg-gray-100 text-blue-500">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Support Tools
                   </Link>
                 )}
                 <button

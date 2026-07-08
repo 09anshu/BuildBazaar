@@ -57,6 +57,15 @@ const support = (req, res, next) => {
   }
 };
 
+// Support or Admin only — for user lookup and order tracking (all)
+const supportOrAdmin = (req, res, next) => {
+  if (req.user && (req.user.role === 'support' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(401).json({ message: 'Not authorized for this action' });
+  }
+};
+
 const staff = (req, res, next) => {
   if (req.user && (req.user.role === 'admin' || req.user.role === 'sales' || req.user.role === 'support')) {
     next();
@@ -65,4 +74,4 @@ const staff = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, seller, sales, support, staff };
+module.exports = { protect, admin, seller, sales, support, supportOrAdmin, staff };

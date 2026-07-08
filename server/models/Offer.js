@@ -19,11 +19,27 @@ const offerSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    validFrom: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+    validUntil: {
+      type: Date,
+      required: true,
+      default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
+    applicableProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+      },
+    ],
   },
   {
     timestamps: true,

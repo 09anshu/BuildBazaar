@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, removeFromCart } from '../store/slices/cartSlice';
-import { Trash2, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { addToCart, removeFromCart, applyCoupon, removeCoupon } from '../store/slices/cartSlice';
+import { validateCoupon } from '../store/slices/offerSlice';
+import { Trash2, ChevronLeft, ShieldCheck, Tag } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const CartPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { cartItems } = useSelector((state) => state.cart);
+  const { cartItems, appliedCoupon } = useSelector((state) => state.cart);
+  const { validatingCoupon } = useSelector((state) => state.offers);
+  const [couponCode, setCouponCode] = useState('');
 
   const removeFromCartHandler = (id) => {
     dispatch(removeFromCart(id));
@@ -18,7 +22,47 @@ const CartPage = () => {
     navigate('/login?redirect=shipping');
   };
 
+  const handleApplyCoupon = async (e) => {
+    e.preventDefault();
+    if (!couponCode) return;
+
+    const productIds = cartItems.map(item => item.product);
+    try {
+      const resultAction = await dispatch(validateCoupon({ code: couponCode, productIds }));
+      if (validateCoupon.fulfilled.match(resultAction)) {
+        dispatch(applyCoupon(resultAction.payload));
+        setCouponCode('');
+        toast.success('Coupon applied successfully!');
+      } else {
+        toast.error(resultAction.payload || 'Invalid coupon code');
+      }
+    } catch (err) {
+      toast.error('Failed to validate coupon');
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    dispatch(removeCoupon());
+    toast.info('Coupon removed');
+  };
+
   const itemsPrice = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
+
+  // Calculate discount based on applicable products
+  let discountAmount = 0;
+  if (appliedCoupon) {
+    const applicableCartTotal = cartItems.reduce((acc, item) => {
+      // If no applicable products specified, it's site-wide
+      if (appliedCoupon.applicableProducts.length === 0 || appliedCoupon.applicableProducts.includes(item.product)) {
+        return acc + item.qty * item.price;
+      }
+      return acc;
+    }, 0);
+    
+    discountAmount = (applicableCartTotal * appliedCoupon.discountPercent) / 100;
+  }
+
+  const finalPrice = itemsPrice - discountAmount;
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -106,10 +150,55 @@ const CartPage = () => {
                 <p className="text-xs">Your order qualifies for FREE Shipping. Choose this option at checkout.</p>
               </div>
               
-              <p className="text-lg mb-4">
-                Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)} items): 
-                <span className="font-bold text-xl ml-2">₹{itemsPrice.toLocaleString('en-IN')}</span>
-              </p>
+              <div className="mb-6 pb-6 border-b border-gray-200">
+                <p className="text-lg mb-2">
+                  Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)} items): 
+                  <span className="font-bold text-xl ml-2">₹{itemsPrice.toLocaleString('en-IN')}</span>
+                </p>
+
+                {appliedCoupon && (
+                  <div className="flex justify-between items-center text-sm mb-2 text-emerald-600 font-bold bg-emerald-50 p-2 rounded border border-emerald-100">
+                    <div className="flex items-center">
+                      <Tag className="w-4 h-4 mr-1" />
+                      {appliedCoupon.discountCode} ({appliedCoupon.discountPercent}%)
+                    </div>
+                    <div className="flex items-center">
+                      -₹{discountAmount.toLocaleString('en-IN')}
+                      <button onClick={handleRemoveCoupon} className="ml-3 text-gray-400 hover:text-red-500">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {appliedCoupon && (
+                  <p className="text-lg font-bold flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                    Total: <span className="text-2xl text-red-700">₹{finalPrice.toLocaleString('en-IN')}</span>
+                  </p>
+                )}
+              </div>
+
+              {!appliedCoupon && (
+                <form onSubmit={handleApplyCoupon} className="mb-6">
+                  <p className="text-sm font-bold text-gray-700 mb-2">Have a coupon code?</p>
+                  <div className="flex">
+                    <input 
+                      type="text" 
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Enter code" 
+                      className="border border-gray-300 rounded-l-md p-2 w-full text-sm font-mono focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 uppercase"
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={validatingCoupon || !couponCode}
+                      className="bg-gray-800 text-white px-4 text-sm font-bold rounded-r-md hover:bg-gray-700 disabled:bg-gray-400"
+                    >
+                      {validatingCoupon ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <button 
                 onClick={checkoutHandler}

@@ -27,6 +27,7 @@ import AllProductsPage from './pages/AllProductsPage';
 import ReviewProductPage from './pages/ReviewProductPage';
 import SalesDashboard from './pages/SalesDashboard';
 import SupportDashboard from './pages/SupportDashboard';
+import InfoPage from './pages/InfoPage';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
             <Route path="/all-products" element={<AllProductsPage />} />
             <Route path="/search/:keyword" element={<HomePage />} />
             <Route path="/category/:category" element={<AllProductsPage />} />
+            <Route path="/info/:slug" element={<InfoPage />} />
           </Routes>
         </main>
         <Footer />

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { fetchOffers, createOffer, deleteOffer, updateOffer } from '../store/slices/offerSlice';
+import { listProducts } from '../store/slices/productSlice';
 import { Tag, FileText, Plus, Trash2, ToggleLeft, ToggleRight, TrendingUp, MessageSquare, IndianRupee } from 'lucide-react';
 
 const SalesDashboard = () => {
@@ -16,12 +17,20 @@ const SalesDashboard = () => {
   const [offerCode, setOfferCode] = useState('');
   const [offerPercent, setOfferPercent] = useState('');
   const [isOfferActive, setIsOfferActive] = useState(true);
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  
+  // Set default dates: today and 7 days from today
+  const today = new Date().toISOString().split('T')[0];
+  const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const [validFrom, setValidFrom] = useState(today);
+  const [validUntil, setValidUntil] = useState(nextWeek);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const { userInfo } = useSelector((state) => state.auth);
   const { offers, loading: offersLoading } = useSelector((state) => state.offers);
+  const { products } = useSelector((state) => state.products);
 
   useEffect(() => {
     if (!userInfo || (userInfo.role !== 'sales' && userInfo.role !== 'admin')) {
@@ -29,6 +38,7 @@ const SalesDashboard = () => {
     } else {
       fetchEnquiries();
       dispatch(fetchOffers());
+      dispatch(listProducts({ pageSize: 1000 }));
     }
   }, [navigate, userInfo, dispatch]);
 
@@ -55,11 +65,17 @@ const SalesDashboard = () => {
       title: offerTitle,
       discountCode: offerCode,
       discountPercent: Number(offerPercent),
-      isActive: isOfferActive
+      isActive: isOfferActive,
+      applicableProducts: selectedProducts,
+      validFrom,
+      validUntil
     })).then(() => {
       setOfferTitle('');
       setOfferCode('');
       setOfferPercent('');
+      setSelectedProducts([]);
+      setValidFrom(today);
+      setValidUntil(nextWeek);
       toast.success('Offer created successfully');
     });
   };
@@ -72,6 +88,14 @@ const SalesDashboard = () => {
     if (window.confirm('Are you sure you want to delete this offer?')) {
       dispatch(deleteOffer(id));
     }
+  };
+
+  const handleProductSelect = (productId) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
   };
 
   // Stats
@@ -196,6 +220,35 @@ const SalesDashboard = () => {
                       <label className="block text-sm font-bold text-gray-700 mb-1">Discount % *</label>
                       <input type="number" className="w-full p-2.5 border rounded-lg focus:outline-none focus:border-[#f5a623]" value={offerPercent} onChange={e => setOfferPercent(e.target.value)} min="1" max="99" required />
                     </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Applicable Products</label>
+                      <div className="border rounded-lg max-h-40 overflow-y-auto p-2 bg-gray-50">
+                        {products && products.map(product => (
+                          <label key={product._id} className="flex items-center space-x-2 p-1 hover:bg-gray-200 rounded cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedProducts.includes(product._id)}
+                              onChange={() => handleProductSelect(product._id)}
+                              className="accent-[#f5a623]"
+                            />
+                            <span className="text-sm truncate" title={product.name}>{product.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Leave all unchecked to apply site-wide.</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Valid From *</label>
+                        <input type="date" className="w-full p-2.5 border rounded-lg focus:outline-none focus:border-[#f5a623]" value={validFrom} onChange={e => setValidFrom(e.target.value)} required />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Valid Until *</label>
+                        <input type="date" className="w-full p-2.5 border rounded-lg focus:outline-none focus:border-[#f5a623]" value={validUntil} onChange={e => setValidUntil(e.target.value)} required />
+                      </div>
+                    </div>
+
                     <div className="mb-6 flex items-center gap-2">
                       <input type="checkbox" id="active" className="h-4 w-4 accent-[#f5a623]" checked={isOfferActive} onChange={e => setIsOfferActive(e.target.checked)} />
                       <label htmlFor="active" className="text-sm font-bold text-gray-700">Launch as Active</label>
@@ -223,6 +276,8 @@ const SalesDashboard = () => {
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Code</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Applies To</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Validity</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                           </tr>
@@ -233,6 +288,13 @@ const SalesDashboard = () => {
                               <td className="px-4 py-4 font-medium text-gray-900">{offer.title}</td>
                               <td className="px-4 py-4 text-sm font-mono text-gray-500">{offer.discountCode || '—'}</td>
                               <td className="px-4 py-4 text-sm font-bold text-emerald-600">{offer.discountPercent}% OFF</td>
+                              <td className="px-4 py-4 text-sm text-gray-600">
+                                {offer.applicableProducts?.length > 0 ? `${offer.applicableProducts.length} Products` : 'Site-wide'}
+                              </td>
+                              <td className="px-4 py-4 text-xs text-gray-500">
+                                {new Date(offer.validFrom).toLocaleDateString()} - <br/>
+                                {new Date(offer.validUntil).toLocaleDateString()}
+                              </td>
                               <td className="px-4 py-4">
                                 <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${offer.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                   {offer.isActive ? 'Active' : 'Inactive'}

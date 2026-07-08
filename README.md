@@ -318,7 +318,7 @@ From the Admin Panel → **Users & Roles** tab, you can create new staff account
 | Manage own profile | ✅ | ✅ | ✅ | ✅ | ✅ |
 | View own orders | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Create/edit products | ❌ | ✅ | ❌ | ❌ | ✅ |
-| Seller Dashboard | ❌ | ✅ | ❌ | ❌ | ✅ |
+| Seller Dashboard | ❌ | ✅ | ✅ | ❌ | ✅ |
 | Quotes Kanban | ❌ | ❌ | ✅ | ❌ | ✅ |
 | Offer Management | ❌ | ❌ | ✅ | ❌ | ✅ |
 | Order Tracking (all) | ❌ | ❌ | ❌ | ✅ | ✅ |

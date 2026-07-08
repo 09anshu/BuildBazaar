@@ -45,15 +45,37 @@ export const deleteOffer = createAsyncThunk('offers/delete', async (id, { getSta
   }
 });
 
+export const fetchProductOffers = createAsyncThunk('offers/fetchByProduct', async (productId, { rejectWithValue }) => {
+  try {
+    const { data } = await axios.get(`/api/offers/product/${productId}`);
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
+  }
+});
+
+export const validateCoupon = createAsyncThunk('offers/validateCoupon', async ({ code, productIds }, { rejectWithValue }) => {
+  try {
+    const { data } = await axios.post('/api/offers/validate', { code, productIds });
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
+  }
+});
+
 const offerSlice = createSlice({
   name: 'offers',
   initialState: {
     offers: [],
+    productOffers: [],
     loading: false,
     error: null,
     successCreate: false,
     successUpdate: false,
     successDelete: false,
+    validatingCoupon: false,
+    couponError: null,
+    validatedCoupon: null,
   },
   reducers: {
     resetOfferStatus: (state) => {
@@ -88,6 +110,14 @@ const offerSlice = createSlice({
         state.offers = state.offers.filter(o => o._id !== action.payload); 
       })
       .addCase(deleteOffer.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+
+      .addCase(fetchProductOffers.pending, (state) => { state.loading = true; })
+      .addCase(fetchProductOffers.fulfilled, (state, action) => { state.loading = false; state.productOffers = action.payload; })
+      .addCase(fetchProductOffers.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+
+      .addCase(validateCoupon.pending, (state) => { state.validatingCoupon = true; state.couponError = null; })
+      .addCase(validateCoupon.fulfilled, (state, action) => { state.validatingCoupon = false; state.validatedCoupon = action.payload; })
+      .addCase(validateCoupon.rejected, (state, action) => { state.validatingCoupon = false; state.couponError = action.payload; });
   }
 });
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { listProducts } from '../store/slices/productSlice';
+import { fetchOffers } from '../store/slices/offerSlice';
 import ProductCard from '../components/ProductCard';
 import { ShieldCheck, Package, Truck, Wrench } from 'lucide-react';
 
@@ -46,10 +47,14 @@ const HomePage = () => {
   const { keyword, category: catParam } = useParams();
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
+  const { offers } = useSelector((state) => state.offers);
 
   useEffect(() => {
     dispatch(listProducts({ keyword, category: catParam }));
+    dispatch(fetchOffers());
   }, [dispatch, keyword, catParam]);
+
+  const activeOffers = offers?.filter(offer => offer.isActive) || [];
 
   const categories = [
     {
@@ -123,6 +128,49 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-amber-50/40">
+      {/* Live Promo Offers Marquee */}
+      {activeOffers.length > 0 && (
+        <div className="bg-amber-400 py-2 relative z-30 overflow-hidden w-full">
+          <div className="whitespace-nowrap animate-marquee flex items-center gap-10 text-slate-900 font-bold">
+            {activeOffers.map((offer, index) => (
+              <div key={`${offer._id}-${index}`} className="flex items-center gap-3 inline-flex">
+                <span className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  LIVE OFFER:
+                </span>
+                <span className="text-sm bg-white/50 px-3 py-1 rounded-full shadow-sm border border-amber-500/30">
+                  {offer.title}
+                </span>
+                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs shadow-sm">
+                  Code: {offer.discountCode}
+                </span>
+              </div>
+            ))}
+            {/* Duplicate for seamless looping (optional depending on length, but safe to add) */}
+            {activeOffers.map((offer, index) => (
+              <div key={`dup-${offer._id}-${index}`} className="flex items-center gap-3 inline-flex">
+                <span className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  LIVE OFFER:
+                </span>
+                <span className="text-sm bg-white/50 px-3 py-1 rounded-full shadow-sm border border-amber-500/30">
+                  {offer.title}
+                </span>
+                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs shadow-sm">
+                  Code: {offer.discountCode}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Hero Banner */}
       <div className="relative h-[34rem] w-full overflow-hidden">
         <img
@@ -159,7 +207,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="max-w-screen-2xl mx-auto px-4 -mt-16 relative z-30">
+      <div className="max-w-screen-2xl mx-auto px-4 mt-8 relative z-30">
         {/* Categories Grid */}
         <div className="mb-10 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => (

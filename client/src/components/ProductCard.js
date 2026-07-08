@@ -1,12 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, ShoppingCart } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
+  const { offers } = useSelector(state => state.offers);
+
+  // Find the best applicable offer
+  const applicableOffers = offers?.filter(offer => 
+    offer.isActive && 
+    (offer.applicableProducts?.length === 0 || offer.applicableProducts?.includes(product._id))
+  ) || [];
+  
+  const bestOffer = applicableOffers.sort((a, b) => b.discountPercent - a.discountPercent)[0];
 
   const addToCartHandler = (e) => {
     e.preventDefault();
@@ -25,7 +34,15 @@ const ProductCard = ({ product }) => {
 
   return (
     <div className="relative flex flex-col m-5 bg-white z-30 p-10 shadow-md hover:shadow-xl transition-shadow duration-300 rounded-md">
-      <p className="absolute top-2 right-2 text-xs italic text-gray-400">{product.category}</p>
+      <p className="absolute top-2 right-2 text-xs italic text-gray-400 z-10">{product.category}</p>
+
+      {bestOffer && (
+        <div className="absolute top-2 left-2 z-20">
+          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+            {bestOffer.discountPercent}% OFF
+          </span>
+        </div>
+      )}
 
       <Link to={`/product/${product._id}`}>
         <img 

@@ -42,11 +42,16 @@ const registerUser = async (req, res) => {
     return;
   }
 
+  // Only allow self-registration as customer or seller
+  // Staff roles (admin, sales, support) must be assigned by an admin
+  const allowedSelfRoles = ['customer', 'seller'];
+  const assignedRole = (role && allowedSelfRoles.includes(role)) ? role : 'customer';
+
   const user = await User.create({
     name,
     email,
     password,
-    role: role || 'customer',
+    role: assignedRole,
   });
 
   if (user) {

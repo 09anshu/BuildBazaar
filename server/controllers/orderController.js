@@ -202,6 +202,22 @@ const requestItemReturn = async (req, res) => {
   }
 };
 
+// @desc    Get all enquiry orders (for Sales Kanban)
+// @route   GET /api/orders/enquiries
+// @access  Private/Sales/Admin
+const getEnquiries = async (req, res) => {
+  const enquiries = await Order.find({ orderType: 'enquiry' }).populate('user', 'id name email');
+  res.json(enquiries);
+};
+
+// @desc    Get all standard orders (for Support order tracking)
+// @route   GET /api/orders/standard
+// @access  Private/Support/Admin
+const getStandardOrders = async (req, res) => {
+  const orders = await Order.find({ orderType: { $ne: 'enquiry' } }).populate('user', 'id name email');
+  res.json(orders);
+};
+
 module.exports = {
   addOrderItems,
   getOrderById,
@@ -211,4 +227,6 @@ module.exports = {
   getOrders,
   createEnquiry,
   requestItemReturn,
+  getEnquiries,
+  getStandardOrders,
 };

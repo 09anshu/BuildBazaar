@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
 import { listProductDetails } from '../store/slices/productSlice';
 import { addToCart } from '../store/slices/cartSlice';
+import { fetchProductOffers } from '../store/slices/offerSlice';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -25,6 +26,7 @@ const ProductPage = () => {
 
   const { product, loading, error } = useSelector((state) => state.products);
   const { userInfo } = useSelector((state) => state.auth);
+  const { productOffers } = useSelector((state) => state.offers);
 
   // Enquiry Modal State
   const [showEnquiry, setShowEnquiry] = useState(false);
@@ -34,6 +36,7 @@ const ProductPage = () => {
 
   useEffect(() => {
     dispatch(listProductDetails(id));
+    dispatch(fetchProductOffers(id));
   }, [dispatch, id]);
 
   const addToCartHandler = () => {
@@ -200,6 +203,27 @@ const ProductPage = () => {
                       </div>
                     );
                   })()}
+
+                  {/* Active Offers Banner */}
+                  {productOffers && productOffers.length > 0 && (
+                    <div className="mb-6 space-y-2">
+                      {productOffers.map(offer => (
+                        <div key={offer._id} className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+                              {offer.discountPercent}% OFF
+                            </span>
+                            <span className="text-sm font-semibold text-orange-900">{offer.title}</span>
+                          </div>
+                          {offer.discountCode && (
+                            <div className="text-xs font-bold text-orange-800 bg-orange-100 border border-orange-200 px-2 py-1 rounded font-mono">
+                              Code: {offer.discountCode}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Wholesale Pricing Table */}
                   {product.wholesaleTiers && product.wholesaleTiers.length > 0 && (

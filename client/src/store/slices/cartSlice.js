@@ -8,12 +8,17 @@ const shippingAddressFromStorage = localStorage.getItem('shippingAddress')
   ? JSON.parse(localStorage.getItem('shippingAddress'))
   : {};
 
+const appliedCouponFromStorage = localStorage.getItem('appliedCoupon')
+  ? JSON.parse(localStorage.getItem('appliedCoupon'))
+  : null;
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
     cartItems: cartItemsFromStorage,
     shippingAddress: shippingAddressFromStorage,
     paymentMethod: 'PayPal',
+    appliedCoupon: appliedCouponFromStorage,
   },
   reducers: {
     addToCart: (state, action) => {
@@ -55,7 +60,17 @@ const cartSlice = createSlice({
     },
     clearCart: (state) => {
       state.cartItems = [];
+      state.appliedCoupon = null;
       localStorage.removeItem('cartItems');
+      localStorage.removeItem('appliedCoupon');
+    },
+    applyCoupon: (state, action) => {
+      state.appliedCoupon = action.payload;
+      localStorage.setItem('appliedCoupon', JSON.stringify(action.payload));
+    },
+    removeCoupon: (state) => {
+      state.appliedCoupon = null;
+      localStorage.removeItem('appliedCoupon');
     },
   },
 });
@@ -66,5 +81,7 @@ export const {
   saveShippingAddress,
   savePaymentMethod,
   clearCart,
+  applyCoupon,
+  removeCoupon,
 } = cartSlice.actions;
 export default cartSlice.reducer;

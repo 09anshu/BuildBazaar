@@ -46,39 +46,39 @@ const Footer = () => {
         <div>
           <h4 className="font-bold mb-4">Get to Know Us</h4>
           <ul className="text-sm space-y-2 text-gray-300">
-            <li><Link to="/about" className="hover:underline">About BuildBazaar</Link></li>
-            <li><Link to="/careers" className="hover:underline">Careers</Link></li>
-            <li><Link to="/press" className="hover:underline">Press Releases</Link></li>
-            <li><Link to="/impact" className="hover:underline">Environmental Impact</Link></li>
+            <li><Link to="/info/about" className="hover:underline hover:text-[#f5a623] transition-colors">About BuildBazaar</Link></li>
+            <li><Link to="/info/careers" className="hover:underline hover:text-[#f5a623] transition-colors">Careers</Link></li>
+            <li><Link to="/info/press" className="hover:underline hover:text-[#f5a623] transition-colors">Press Releases</Link></li>
+            <li><Link to="/info/impact" className="hover:underline hover:text-[#f5a623] transition-colors">Environmental Impact</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold mb-4">Connect with Us</h4>
           <ul className="text-sm space-y-2 text-gray-300">
-            <li><button type="button" className="hover:underline">Facebook</button></li>
-            <li><button type="button" className="hover:underline">Twitter</button></li>
-            <li><button type="button" className="hover:underline">Instagram</button></li>
+            <li><a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-[#f5a623] transition-colors">Facebook</a></li>
+            <li><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-[#f5a623] transition-colors">Twitter</a></li>
+            <li><a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-[#f5a623] transition-colors">Instagram</a></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold mb-4">Make Money with Us</h4>
           <ul className="text-sm space-y-2 text-gray-300">
-            <li><Link to="/register?role=seller" className="hover:underline">Sell on BuildBazaar</Link></li>
-            <li><Link to="/seller-guide" className="hover:underline">Seller Central</Link></li>
-            <li><Link to="/affiliate" className="hover:underline">Become an Affiliate</Link></li>
-            <li><Link to="/advertise" className="hover:underline">Advertise Your Products</Link></li>
+            <li><Link to="/register" className="hover:underline hover:text-[#f5a623] transition-colors">Sell on BuildBazaar</Link></li>
+            <li><Link to="/info/seller-guide" className="hover:underline hover:text-[#f5a623] transition-colors">Seller Central</Link></li>
+            <li><Link to="/info/affiliate" className="hover:underline hover:text-[#f5a623] transition-colors">Become an Affiliate</Link></li>
+            <li><Link to="/info/advertise" className="hover:underline hover:text-[#f5a623] transition-colors">Advertise Your Products</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold mb-4">Let Us Help You</h4>
           <ul className="text-sm space-y-2 text-gray-300">
-            <li><Link to="/account" className="hover:underline">Your Account</Link></li>
-            <li><Link to="/orders" className="hover:underline">Your Orders</Link></li>
-            <li><Link to="/shipping-rates" className="hover:underline">Shipping Rates & Policies</Link></li>
-            <li><Link to="/help" className="hover:underline">Help & Support</Link></li>
+            <li><Link to="/profile" className="hover:underline hover:text-[#f5a623] transition-colors">Your Account</Link></li>
+            <li><Link to="/myorders" className="hover:underline hover:text-[#f5a623] transition-colors">Your Orders</Link></li>
+            <li><Link to="/info/shipping-rates" className="hover:underline hover:text-[#f5a623] transition-colors">Shipping Rates & Policies</Link></li>
+            <li><Link to="/info/help" className="hover:underline hover:text-[#f5a623] transition-colors">Help & Support</Link></li>
           </ul>
         </div>
       </div>

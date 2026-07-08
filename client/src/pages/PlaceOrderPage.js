@@ -20,10 +20,24 @@ const PlaceOrderPage = () => {
   const itemsPrice = addDecimals(
     cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
   );
-  const shippingPrice = addDecimals(itemsPrice > 5000 ? 0 : 500);
-  const taxPrice = addDecimals(Number((0.18 * itemsPrice).toFixed(2)));
+
+  let discountAmount = 0;
+  if (cart.appliedCoupon) {
+    const applicableCartTotal = cart.cartItems.reduce((acc, item) => {
+      if (cart.appliedCoupon.applicableProducts.length === 0 || cart.appliedCoupon.applicableProducts.includes(item.product)) {
+        return acc + item.price * item.qty;
+      }
+      return acc;
+    }, 0);
+    discountAmount = (applicableCartTotal * cart.appliedCoupon.discountPercent) / 100;
+  }
+  const discountPrice = addDecimals(discountAmount);
+
+  const shippingPrice = addDecimals(itemsPrice - discountPrice > 5000 ? 0 : 500);
+  const taxPrice = addDecimals(Number((0.18 * (itemsPrice - discountPrice)).toFixed(2)));
   const totalPrice = (
-    Number(itemsPrice) +
+    Number(itemsPrice) -
+    Number(discountPrice) +
     Number(shippingPrice) +
     Number(taxPrice)
   ).toFixed(2);
@@ -49,6 +63,7 @@ const PlaceOrderPage = () => {
         shippingPrice,
         taxPrice,
         totalPrice,
+        discountCode: cart.appliedCoupon ? cart.appliedCoupon.discountCode : undefined,
       })
     );
   };
@@ -119,6 +134,12 @@ const PlaceOrderPage = () => {
                   <span>Items</span>
                   <span>₹{itemsPrice}</span>
                 </div>
+                {Number(discountPrice) > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-600 font-bold">
+                    <span>Discount ({cart.appliedCoupon?.discountCode})</span>
+                    <span>-₹{discountPrice}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span>Shipping</span>
                   <span>₹{shippingPrice}</span>

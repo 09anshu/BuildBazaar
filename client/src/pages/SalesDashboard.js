@@ -388,6 +388,8 @@ const SalesDashboard = () => {
     rejected: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-300', dot: 'bg-red-500', label: 'Rejected' },
   };
 
+  if (!userInfo) return null;
+
   return (
     <div className="bg-gray-100 min-h-screen flex">
       {/* Sidebar */}

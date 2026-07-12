@@ -228,6 +228,8 @@ const MyOrdersPage = () => {
       (order.enquiryStatus === 'quoted' || order.enquiryStatus === 'countered');
   };
 
+  if (!userInfo) return null;
+
   return (
     <div className="bg-gray-100 min-h-screen pt-10 px-4 pb-20">
       <div className="max-w-4xl mx-auto">

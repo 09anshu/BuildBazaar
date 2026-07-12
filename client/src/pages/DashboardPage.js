@@ -175,6 +175,8 @@ const DashboardPage = () => {
     ...(userInfo?.role === 'admin' ? [{ key: 'teams', label: 'Team Monitor', icon: Eye }] : []),
   ];
 
+  if (!userInfo) return null;
+
   return (
     <div className="bg-gray-100 min-h-screen flex">
       {/* Sidebar */}
@@ -478,7 +480,7 @@ const DashboardPage = () => {
                           </td>
                           <td className="p-4 text-sm">{new Date(user.createdAt).toLocaleDateString()}</td>
                           <td className="p-4">
-                            <button onClick={() => deleteUserHandler(user._id)} className="text-red-600 hover:text-red-800 p-1" disabled={user._id === userInfo._id}>
+                            <button onClick={() => deleteUserHandler(user._id)} className="text-red-600 hover:text-red-800 p-1" disabled={user._id === userInfo?._id}>
                               <Trash2 className="h-5 w-5" />
                             </button>
                           </td>

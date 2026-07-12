@@ -73,6 +73,8 @@ const SupportDashboard = () => {
   const paidOrders = orders.filter(o => o.isPaid).length;
   const totalCustomers = allUsers.filter(u => u.role === 'customer').length;
 
+  if (!userInfo) return null;
+
   return (
     <div className="bg-gray-100 min-h-screen flex">
       {/* Sidebar */}

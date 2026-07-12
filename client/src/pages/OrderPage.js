@@ -29,6 +29,7 @@ const OrderPage = () => {
     toast.success('Payment Successful!');
   };
 
+  if (!userInfo) return null;
   if (loading) return <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amazon_blue"></div></div>;
   if (error) return <div className="bg-red-100 text-red-700 p-4 m-10 rounded-md">{error}</div>;
   if (!order) return null;

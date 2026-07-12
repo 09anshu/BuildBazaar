@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { logout } from './authSlice';
 
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetchAll',
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth: { userInfo } } = getState();
+      if (!userInfo) return rejectWithValue('Not authenticated');
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       const { data } = await axios.get('/api/notifications', config);
       return data;
@@ -20,6 +22,7 @@ export const fetchUnreadCount = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth: { userInfo } } = getState();
+      if (!userInfo) return rejectWithValue('Not authenticated');
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       const { data } = await axios.get('/api/notifications/unread-count', config);
       return data.count;
@@ -34,6 +37,7 @@ export const markNotificationRead = createAsyncThunk(
   async (id, { getState, rejectWithValue }) => {
     try {
       const { auth: { userInfo } } = getState();
+      if (!userInfo) return rejectWithValue('Not authenticated');
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/notifications/${id}/read`, {}, config);
       return id;
@@ -48,6 +52,7 @@ export const markAllNotificationsRead = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth: { userInfo } } = getState();
+      if (!userInfo) return rejectWithValue('Not authenticated');
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put('/api/notifications/read-all', {}, config);
       return true;
@@ -73,6 +78,14 @@ const notificationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Reset all notification state when the user logs out
+      .addCase(logout, (state) => {
+        state.items = [];
+        state.unreadCount = 0;
+        state.loading = false;
+        state.error = null;
+      })
+
       .addCase(fetchNotifications.pending, (state) => { state.loading = true; })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;

@@ -28,6 +28,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Excel Exports
+*.xlsx
+
 # Uploads/Media (if ignoring user uploads)
 server/uploads/*
 !server/uploads/.gitkeep
@@ -109,3 +112,5 @@ typings/
 
 # Gemini / Agent generated plans
 RBAC_Implementation_Plan.*
+socket_implementation_plan.md
+Dashboard_Roles_Breakdown.md

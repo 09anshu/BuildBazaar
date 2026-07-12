@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -60,6 +62,48 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Create HTTP server and attach Socket.IO
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+// Expose io via req.io middleware and global for controllers/helpers
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+global.io = io;
+
+io.on('connection', (socket) => {
+  console.log('Socket connected:', socket.id);
+  // Join room by user id
+  socket.on('joinRoom', (userId) => {
+    try {
+      if (userId) {
+        socket.join(userId.toString());
+        console.log(`Socket ${socket.id} joined room user:${userId}`);
+      }
+    } catch (err) {
+      console.error('joinRoom error:', err.message);
+    }
+  });
+
+  // Join sales room helper
+  socket.on('joinSalesRoom', () => {
+    socket.join('sales');
+    console.log(`Socket ${socket.id} joined room:sales`);
+  });
+
+  socket.on('disconnect', () => { });
+});
+
+server.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });

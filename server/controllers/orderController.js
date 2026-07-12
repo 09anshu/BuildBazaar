@@ -92,6 +92,14 @@ const updateOrderToPaid = async (req, res) => {
       console.error('Notification error (order_paid):', notifError.message);
     }
 
+    // Emit order status change to the user
+    try {
+      const emitter = req.io || global.io;
+      if (emitter) emitter.to(order.user.toString()).emit('orderStatusChanged', updatedOrder);
+    } catch (emitErr) {
+      console.error('Error emitting orderStatusChanged (paid):', emitErr.message);
+    }
+
     res.json(updatedOrder);
   } else {
     res.status(404).json({ message: 'Order not found' });
@@ -119,6 +127,14 @@ const updateOrderToDelivered = async (req, res) => {
       });
     } catch (notifError) {
       console.error('Notification error (order_delivered):', notifError.message);
+    }
+
+    // Emit order status change to the user
+    try {
+      const emitter = req.io || global.io;
+      if (emitter) emitter.to(order.user.toString()).emit('orderStatusChanged', updatedOrder);
+    } catch (emitErr) {
+      console.error('Error emitting orderStatusChanged (delivered):', emitErr.message);
     }
 
     res.json(updatedOrder);
@@ -169,6 +185,14 @@ const createEnquiry = async (req, res) => {
     });
 
     const createdOrder = await order.save();
+    // Emit new enquiry to sales in real-time
+    try {
+      const emitter = req.io || global.io;
+      if (emitter) emitter.to('sales').emit('newEnquiry', createdOrder);
+    } catch (emitErr) {
+      console.error('Error emitting newEnquiry:', emitErr.message);
+    }
+
     res.status(201).json(createdOrder);
   }
 };
@@ -210,6 +234,336 @@ const getEnquiries = async (req, res) => {
   res.json(enquiries);
 };
 
+// @desc    Provide quote for an enquiry
+// @route   PUT /api/orders/:id/quote
+// @access  Private/Sales/Admin
+const quoteEnquiry = async (req, res) => {
+  const { totalPrice, negotiationNotes } = req.body;
+  const order = await Order.findById(req.params.id);
+
+  if (order && order.orderType === 'enquiry') {
+    order.totalPrice = Number(totalPrice);
+    order.itemsPrice = Number(totalPrice);
+    if (negotiationNotes) {
+      order.negotiationNotes = negotiationNotes;
+    }
+    order.enquiryStatus = 'quoted';
+
+    const updatedOrder = await order.save();
+
+    try {
+      await createNotification(order.user, {
+        type: 'quote_received',
+        title: 'Quote Received',
+        message: `Sales has provided a quote of ₹${Number(totalPrice).toLocaleString()} for your enquiry #${order._id.toString().slice(-6).toUpperCase()}`,
+        link: '/myorders',
+      });
+    } catch (notifError) {
+      console.error('Notification error (quote_received):', notifError.message);
+    }
+
+    // Emit real-time quote update to the specific user
+    try {
+      const emitter = req.io || global.io;
+      if (emitter) emitter.to(order.user.toString()).emit('quoteUpdated', updatedOrder);
+    } catch (emitErr) {
+      console.error('Error emitting quoteUpdated:', emitErr.message);
+    }
+
+    res.json(updatedOrder);
+  } else {
+    res.status(404).json({ message: 'Enquiry not found' });
+  }
+};
+
+// @desc    Accept a quote
+// @route   PUT /api/orders/:id/accept-quote
+// @access  Private
+const acceptQuote = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (order && order.orderType === 'enquiry') {
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Mark as accepted and convert the enquiry into a standard order for processing
+    order.enquiryStatus = 'accepted';
+    order.orderType = 'standard';
+    // Ensure itemsPrice reflects the quoted total so totals and payment behave correctly
+    if (order.totalPrice && order.totalPrice > 0) {
+      order.itemsPrice = Number(order.totalPrice);
+    }
+
+    const updatedOrder = await order.save();
+
+    // Notify sales room and the user in real-time
+    try {
+      const emitter = req.io || global.io;
+      if (emitter) {
+        // Notify sales dashboards and the customer
+        emitter.to('sales').emit('enquiryStatusChanged', updatedOrder);
+        emitter.to(order.user.toString()).emit('quoteStatusChanged', updatedOrder);
+        // Also emit orderStatusChanged so order-listing components react uniformly
+        emitter.to(order.user.toString()).emit('orderStatusChanged', updatedOrder);
+      }
+    } catch (emitErr) {
+      console.error('Error emitting enquiryStatusChanged:', emitErr.message);
+    }
+
+    res.json(updatedOrder);
+  } else {
+    res.status(404).json({ message: 'Enquiry not found' });
+  }
+};
+
+// @desc    Propose a counter-offer (customer)
+// @route   PUT /api/orders/:id/counter
+// @access  Private
+const proposeCounter = async (req, res) => {
+  const { counterPrice, counterNotes } = req.body;
+  const order = await Order.findById(req.params.id);
+
+  if (!order || order.orderType !== 'enquiry') {
+    return res.status(404).json({ message: 'Enquiry not found' });
+  }
+
+  // Only the customer who requested the enquiry can propose a counter
+  if (order.user.toString() !== req.user._id.toString()) {
+    return res.status(401).json({ message: 'Not authorized' });
+  }
+
+  if (counterPrice !== undefined) {
+    order.negotiationNotes = counterNotes || order.negotiationNotes;
+    order.counterPrice = Number(counterPrice);
+    order.enquiryStatus = 'countered';
+  }
+
+  const updatedOrder = await order.save();
+
+  try {
+    await createNotification(req.user._id, {
+      type: 'quote_counter_proposed',
+      title: 'Counter Offer Proposed',
+      message: `A customer proposed a counter for enquiry #${order._id.toString().slice(-6).toUpperCase()}`,
+      link: `/order/${order._id}`,
+    });
+  } catch (notifError) {
+    console.error('Notification error (counter_proposed):', notifError.message);
+  }
+
+  // Emit to sales room so Sales users see the counter immediately
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) emitter.to('sales').emit('quoteCounterProposed', updatedOrder);
+  } catch (emitErr) {
+    console.error('Error emitting quoteCounterProposed:', emitErr.message);
+  }
+
+  // Also emit a generic enquiryStatusChanged to ensure dashboards listening for status updates refresh
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) emitter.to('sales').emit('enquiryStatusChanged', updatedOrder);
+  } catch (emitErr) {
+    console.error('Error emitting enquiryStatusChanged (counter):', emitErr.message);
+  }
+
+  // Emit quoteUpdated back to the customer as well
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) emitter.to(order.user.toString()).emit('quoteUpdated', updatedOrder);
+  } catch (emitErr) {
+    console.error('Error emitting quoteUpdated (counter):', emitErr.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Sales propose counter-offer to a customer
+// @route   PUT /api/orders/:id/counter-by-sales
+// @access  Private/Sales
+const salesProposeCounter = async (req, res) => {
+  const { counterPrice, counterNotes } = req.body;
+  const order = await Order.findById(req.params.id);
+
+  if (!order || order.orderType !== 'enquiry') {
+    return res.status(404).json({ message: 'Enquiry not found' });
+  }
+
+  // Route protected by `sales` middleware; no need to check req.user here
+  if (counterPrice !== undefined) {
+    order.negotiationNotes = counterNotes || order.negotiationNotes;
+    order.counterPrice = Number(counterPrice);
+    order.enquiryStatus = 'countered';
+  }
+
+  const updatedOrder = await order.save();
+
+  try {
+    await createNotification(order.user, {
+      type: 'quote_counter_proposed',
+      title: 'Counter Offer from Sales',
+      message: `Sales proposed a counter of ₹${Number(counterPrice).toLocaleString()} for your enquiry #${order._id.toString().slice(-6).toUpperCase()}`,
+      link: `/order/${order._id}`,
+    });
+  } catch (notifError) {
+    console.error('Notification error (sales counter_proposed):', notifError.message);
+  }
+
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) {
+      // Notify the customer specifically
+      emitter.to(order.user.toString()).emit('quoteUpdated', updatedOrder);
+      // Refresh sales dashboards
+      emitter.to('sales').emit('enquiryStatusChanged', updatedOrder);
+    }
+  } catch (emitErr) {
+    console.error('Error emitting salesProposeCounter events:', emitErr.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Sales accept a customer's counter (convert to standard order)
+// @route   PUT /api/orders/:id/accept-counter
+// @access  Private/Sales
+const acceptCounterBySales = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order || order.orderType !== 'enquiry') {
+    return res.status(404).json({ message: 'Enquiry not found' });
+  }
+
+  // Convert enquiry to standard order and accept
+  order.enquiryStatus = 'accepted';
+  order.orderType = 'standard';
+  if (order.counterPrice && order.counterPrice > 0) {
+    order.totalPrice = Number(order.counterPrice);
+    order.itemsPrice = Number(order.counterPrice);
+  } else if (order.totalPrice && order.totalPrice > 0) {
+    order.itemsPrice = Number(order.totalPrice);
+  }
+
+  const updatedOrder = await order.save();
+
+  try {
+    await createNotification(order.user, {
+      type: 'general',
+      title: 'Counter Accepted',
+      message: `Sales accepted the counter for enquiry #${order._id.toString().slice(-6).toUpperCase()}`,
+      link: `/order/${order._id}`,
+    });
+  } catch (notifError) {
+    console.error('Notification error (accept counter):', notifError.message);
+  }
+
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) {
+      emitter.to('sales').emit('enquiryStatusChanged', updatedOrder);
+      emitter.to(order.user.toString()).emit('quoteStatusChanged', updatedOrder);
+      emitter.to(order.user.toString()).emit('orderStatusChanged', updatedOrder);
+    }
+  } catch (emitErr) {
+    console.error('Error emitting acceptCounter events:', emitErr.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Sales decline a customer's counter
+// @route   PUT /api/orders/:id/decline-counter
+// @access  Private/Sales
+const declineCounterBySales = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order || order.orderType !== 'enquiry') {
+    return res.status(404).json({ message: 'Enquiry not found' });
+  }
+
+  order.enquiryStatus = 'rejected';
+  const updatedOrder = await order.save();
+
+  try {
+    await createNotification(order.user, {
+      type: 'general',
+      title: 'Counter Declined',
+      message: `Sales declined the counter for enquiry #${order._id.toString().slice(-6).toUpperCase()}`,
+      link: `/myorders`,
+    });
+  } catch (notifError) {
+    console.error('Notification error (decline counter):', notifError.message);
+  }
+
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) {
+      emitter.to('sales').emit('enquiryStatusChanged', updatedOrder);
+      emitter.to(order.user.toString()).emit('quoteStatusChanged', updatedOrder);
+      emitter.to(order.user.toString()).emit('quoteUpdated', updatedOrder);
+    }
+  } catch (emitErr) {
+    console.error('Error emitting declineCounter events:', emitErr.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Sales reject an enquiry (at any stage)
+// @route   PUT /api/orders/:id/reject
+// @access  Private/Sales
+const rejectEnquiry = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order || order.orderType !== 'enquiry') {
+    return res.status(404).json({ message: 'Enquiry not found' });
+  }
+
+  order.enquiryStatus = 'rejected';
+  order.negotiationNotes = req.body.reason || 'Enquiry rejected by sales.';
+  const updatedOrder = await order.save();
+
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) {
+      emitter.to('sales').emit('enquiryStatusChanged', updatedOrder);
+      emitter.to(order.user.toString()).emit('quoteStatusChanged', updatedOrder);
+      emitter.to(order.user.toString()).emit('orderStatusChanged', updatedOrder);
+    }
+  } catch (emitErr) {
+    console.error('Error emitting reject events:', emitErr.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Get complete sales pipeline history (all enquiries + converted orders)
+// @route   GET /api/orders/sales-history
+// @access  Private/Sales/Admin
+const getSalesHistory = async (req, res) => {
+  // Captures every order that has ever been part of the enquiry pipeline:
+  //   - Active enquiries (orderType: 'enquiry') with any status
+  //   - Won deals that were converted to standard (enquiryStatus: 'accepted')
+  const orders = await Order.find({
+    $or: [
+      { orderType: 'enquiry' },
+      { enquiryStatus: 'accepted' }
+    ]
+  }).populate('user', 'id name email').sort({ updatedAt: -1 });
+  res.json(orders);
+};
+
+// @desc    Get won/closed deals from the enquiry pipeline (for Sales Live Sheet)
+// @route   GET /api/orders/sales-closed
+// @access  Private/Sales/Admin
+const getSalesClosedOrders = async (req, res) => {
+  // When a quote is accepted, enquiryStatus stays 'accepted' but orderType
+  // changes to 'standard'. Query by enquiryStatus to capture these won deals.
+  const orders = await Order.find({ enquiryStatus: 'accepted' }).populate('user', 'id name email');
+  res.json(orders);
+};
+
 // @desc    Get all standard orders (for Support order tracking)
 // @route   GET /api/orders/standard
 // @access  Private/Support/Admin
@@ -228,5 +582,14 @@ module.exports = {
   createEnquiry,
   requestItemReturn,
   getEnquiries,
+  quoteEnquiry,
+  acceptQuote,
+  proposeCounter,
+  salesProposeCounter,
+  acceptCounterBySales,
+  declineCounterBySales,
+  rejectEnquiry,
+  getSalesHistory,
+  getSalesClosedOrders,
   getStandardOrders,
 };

@@ -14,11 +14,17 @@ const orderSchema = mongoose.Schema(
     },
     enquiryStatus: {
       type: String,
-      enum: ['pending', 'quoted', 'accepted', 'rejected'],
+      enum: ['pending', 'quoted', 'accepted', 'rejected', 'countered'],
       default: 'pending'
     },
     customNotes: {
       type: String
+    },
+    negotiationNotes: {
+      type: String
+    },
+    counterPrice: {
+      type: Number,
     },
     orderItems: [
       {

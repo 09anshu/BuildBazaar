@@ -15,6 +15,8 @@ const notificationSchema = mongoose.Schema(
         'order_placed',
         'order_paid',
         'order_delivered',
+        'quote_received',
+        'quote_counter_proposed',
         'price_drop',
         'welcome',
         'general',

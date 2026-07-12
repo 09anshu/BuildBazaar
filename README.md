@@ -79,8 +79,10 @@ The platform features **three segregated dashboards**, ensuring each team only h
 
 | Tab | Capabilities |
 |-----|-------------|
-| **Quotes & Enquiries** | Kanban board with 4 columns (New → Quoted → Won → Rejected) for managing bulk enquiries. Cannot see standard single-item orders. |
-| **Offer Management** | Create, toggle on/off, and delete promotional discount codes |
+| **Quotes & Enquiries** | Kanban board with 4 columns (New → Quoted → Countered → Won) for managing active enquiries. View customer notes, provide quotes, and handle counter-offers. |
+| **Live Sheet** | Real-time spreadsheet view of all won/closed deals from the enquiry pipeline. Includes Excel export functionality. |
+| **Order History** | Complete pipeline history showing all enquiries (won, lost, pending, rejected). Features status filters, accurate sales stats, and Excel export. |
+| **Offer Management** | Create, toggle on/off, and delete promotional discount codes. |
 
 > **Restrictions**: Cannot delete user accounts or modify the main product catalog.
 
@@ -134,12 +136,23 @@ The platform features **three segregated dashboards**, ensuring each team only h
 ### Orders — `/api/orders`
 | Method | Endpoint                    | Access  | Description               |
 | ------ | --------------------------- | ------- | ------------------------- |
-| POST   | `/`                         | Private | Create a new order        |
+| POST   | `/`                         | Private | Create a new standard order |
 | GET    | `/myorders`                 | Private | Get logged-in user's orders |
 | GET    | `/:id`                      | Private | Get order by ID           |
 | PUT    | `/:id/pay`                  | Private | Mark order as paid        |
 | PUT    | `/:id/deliver`              | Staff   | Mark order as delivered   |
-| GET    | `/`                         | Staff   | Get all orders            |
+| GET    | `/enquiries`                | Sales   | Get active enquiries      |
+| PUT    | `/:id/quote`                | Sales   | Send quote to customer    |
+| PUT    | `/:id/counter`              | Private | Customer proposes counter |
+| PUT    | `/:id/counter-by-sales`     | Sales   | Sales proposes counter    |
+| PUT    | `/:id/accept-counter`       | Sales   | Sales accepts counter     |
+| PUT    | `/:id/decline-counter`      | Sales   | Sales declines counter    |
+| PUT    | `/:id/reject`               | Sales   | Sales rejects enquiry     |
+| PUT    | `/:id/accept-quote`         | Private | Customer accepts quote    |
+| GET    | `/sales-history`            | Sales   | Get complete pipeline history |
+| GET    | `/sales-closed`             | Sales   | Get won/closed enquiries  |
+| GET    | `/standard`                 | Support | Get standard orders for tracking |
+| GET    | `/`                         | Admin   | Get all orders            |
 
 ### Offers — `/api/offers`
 | Method | Endpoint                    | Access  | Description               |

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import socket from './utils/socket';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -30,6 +32,27 @@ import SupportDashboard from './pages/SupportDashboard';
 import InfoPage from './pages/InfoPage';
 
 function App() {
+  const { userInfo } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (userInfo) {
+      // connect socket and join user room
+      socket.connect();
+      socket.emit('joinRoom', userInfo._id);
+      if (userInfo.role === 'sales') socket.emit('joinSalesRoom');
+    } else {
+      // disconnect when logged out
+      try {
+        socket.disconnect();
+      } catch (err) { }
+    }
+    // cleanup on unmount
+    return () => {
+      try {
+        socket.off('connect');
+      } catch (err) { }
+    };
+  }, [userInfo]);
   return (
     <Router>
       <div className="flex flex-col min-h-screen">

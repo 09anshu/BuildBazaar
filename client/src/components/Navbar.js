@@ -22,6 +22,8 @@ import {
 import { logout } from '../store/slices/authSlice';
 import { saveShippingAddress } from '../store/slices/cartSlice';
 import NotificationDropdown from './NotificationDropdown';
+import socket from '../utils/socket';
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
   const [keyword, setKeyword] = useState('');
@@ -64,6 +66,20 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
+
+  // Show toast for real-time notifications
+  useEffect(() => {
+    if (!userInfo) return;
+
+    const handler = (notification) => {
+      try {
+        toast.info(notification.title || 'New notification');
+      } catch (err) { }
+    };
+
+    socket.on('newNotification', handler);
+    return () => socket.off('newNotification', handler);
+  }, [userInfo]);
 
   const categoryTabs = [
     { label: 'Cement', to: '/category/Cement', icon: Factory },
@@ -379,11 +395,10 @@ const Navbar = () => {
             <Link
               key={category.label}
               to={category.to}
-              className={`relative inline-flex items-center gap-2 rounded-full px-3 py-2 font-semibold transition-all duration-200 whitespace-nowrap ${
-                isActive
+              className={`relative inline-flex items-center gap-2 rounded-full px-3 py-2 font-semibold transition-all duration-200 whitespace-nowrap ${isActive
                   ? 'bg-[#f5a623] text-slate-950 shadow-md shadow-[#f5a623]/25'
                   : 'text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
+                }`}
             >
               <Icon className="h-4 w-4" />
               <span>{category.label}</span>

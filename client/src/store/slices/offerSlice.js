@@ -1,7 +1,18 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-export const fetchOffers = createAsyncThunk('offers/fetchAll', async (_, { getState, rejectWithValue }) => {
+// Public endpoint for active offers (No auth required)
+export const fetchOffers = createAsyncThunk('offers/fetchActive', async (_, { rejectWithValue }) => {
+  try {
+    const { data } = await axios.get('/api/offers');
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || error.message);
+  }
+});
+
+// Admin/Sales endpoint for all offers (Auth required)
+export const fetchAdminOffers = createAsyncThunk('offers/fetchAdminAll', async (_, { getState, rejectWithValue }) => {
   try {
     const { auth: { userInfo } } = getState();
     const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
@@ -90,6 +101,10 @@ const offerSlice = createSlice({
       .addCase(fetchOffers.pending, (state) => { state.loading = true; })
       .addCase(fetchOffers.fulfilled, (state, action) => { state.loading = false; state.offers = action.payload; })
       .addCase(fetchOffers.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+      
+      .addCase(fetchAdminOffers.pending, (state) => { state.loading = true; })
+      .addCase(fetchAdminOffers.fulfilled, (state, action) => { state.loading = false; state.offers = action.payload; })
+      .addCase(fetchAdminOffers.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
       
       .addCase(createOffer.pending, (state) => { state.loading = true; })
       .addCase(createOffer.fulfilled, (state, action) => { state.loading = false; state.successCreate = true; state.offers.push(action.payload); })

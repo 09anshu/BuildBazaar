@@ -6,7 +6,7 @@ const Offer = require('../models/Offer');
 const getOffers = async (req, res) => {
   try {
     const currentDate = new Date();
-    const offers = await Offer.find({ 
+    const offers = await Offer.find({
       isActive: true,
       validFrom: { $lte: currentDate },
       validUntil: { $gte: currentDate }
@@ -36,6 +36,14 @@ const createOffer = async (req, res) => {
     });
 
     const createdOffer = await offer.save();
+    // Broadcast updated offers list
+    try {
+      const emitter = req.io || global.io;
+      if (emitter) emitter.emit('offerListUpdated');
+    } catch (emitErr) {
+      console.error('Error emitting offerListUpdated (create):', emitErr.message);
+    }
+
     res.status(201).json(createdOffer);
   } catch (error) {
     res.status(400).json({ message: 'Invalid offer data', error: error.message });
@@ -61,6 +69,13 @@ const updateOffer = async (req, res) => {
       if (validUntil) offer.validUntil = new Date(validUntil);
 
       const updatedOffer = await offer.save();
+      try {
+        const emitter = req.io || global.io;
+        if (emitter) emitter.emit('offerListUpdated');
+      } catch (emitErr) {
+        console.error('Error emitting offerListUpdated (update):', emitErr.message);
+      }
+
       res.json(updatedOffer);
     } else {
       res.status(404).json({ message: 'Offer not found' });
@@ -79,6 +94,13 @@ const deleteOffer = async (req, res) => {
 
     if (offer) {
       await offer.deleteOne();
+      try {
+        const emitter = req.io || global.io;
+        if (emitter) emitter.emit('offerListUpdated');
+      } catch (emitErr) {
+        console.error('Error emitting offerListUpdated (delete):', emitErr.message);
+      }
+
       res.json({ message: 'Offer removed' });
     } else {
       res.status(404).json({ message: 'Offer not found' });
@@ -107,7 +129,7 @@ const getOffersByProduct = async (req, res) => {
   try {
     const productId = req.params.productId;
     const currentDate = new Date();
-    
+
     // Find active offers that are valid today and either site-wide or specific to product
     const offers = await Offer.find({
       isActive: true,

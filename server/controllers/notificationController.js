@@ -10,6 +10,16 @@ const createNotification = async (userId, { type, title, message, link }) => {
     message,
     link,
   });
+
+  try {
+    // Emit real-time notification if Socket.IO is available
+    if (global.io) {
+      global.io.to(userId.toString()).emit('newNotification', notification);
+    }
+  } catch (err) {
+    console.error('Error emitting newNotification:', err.message);
+  }
+
   return notification;
 };
 

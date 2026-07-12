@@ -8,6 +8,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from '../store/slices/notificationSlice';
+import socket from '../utils/socket';
 
 const typeIcons = {
   order_placed: Package,
@@ -56,6 +57,19 @@ const NotificationDropdown = () => {
       dispatch(fetchUnreadCount());
     }, 30000);
     return () => clearInterval(interval);
+  }, [dispatch, userInfo]);
+
+  // Listen for real-time notifications
+  useEffect(() => {
+    if (!userInfo) return;
+    const handler = (notification) => {
+      dispatch(fetchUnreadCount());
+    };
+
+    socket.on('newNotification', handler);
+    return () => {
+      socket.off('newNotification', handler);
+    };
   }, [dispatch, userInfo]);
 
   // Close on outside click
@@ -144,9 +158,8 @@ const NotificationDropdown = () => {
                   <button
                     key={notification._id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5 ${
-                      !notification.isRead ? 'bg-white/[0.02]' : ''
-                    }`}
+                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5 ${!notification.isRead ? 'bg-white/[0.02]' : ''
+                      }`}
                   >
                     <div className={`mt-0.5 shrink-0 rounded-lg bg-white/5 p-2 ${colorClass}`}>
                       <Icon className="h-4 w-4" />

@@ -5,6 +5,7 @@ import { addToCart, removeFromCart, applyCoupon, removeCoupon } from '../store/s
 import { validateCoupon } from '../store/slices/offerSlice';
 import { Trash2, ChevronLeft, ShieldCheck, Tag } from 'lucide-react';
 import { toast } from 'react-toastify';
+import getImageUrl from '../utils/getImageUrl';
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -87,7 +88,7 @@ const CartPage = () => {
                     <div className="flex items-center space-x-6 w-full sm:w-auto mb-4 sm:mb-0">
                       <Link to={`/product/${item.product}`}>
                         <img 
-                          src={item.image?.startsWith('http') ? item.image : `http://localhost:5000${item.image}`} 
+                          src={getImageUrl(item.image)} 
                           alt={item.name} 
                           className="h-24 w-24 object-contain"
                         />

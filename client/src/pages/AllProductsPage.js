@@ -4,13 +4,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { listProducts } from '../store/slices/productSlice';
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
+import getImageUrl from '../utils/getImageUrl';
 import {
-  Star,
-  ChevronDown,
-  SlidersHorizontal,
+  Search,
+  Filter,
   X,
+  Grid,
+  List as ListIcon,
+  MapPin,
+  SlidersHorizontal,
+  ChevronRight,
+  ChevronDown,
   ShoppingCart,
+  Star,
 } from 'lucide-react';
+import ProductCard from '../components/ProductCard';
 
 const CATEGORIES = [
   { label: 'Cement', icon: '🧱' },
@@ -506,11 +514,7 @@ const AllProductsPage = () => {
                     className="relative block h-52 overflow-hidden bg-gray-50"
                   >
                     <img
-                      src={
-                        product.image.startsWith('http')
-                          ? product.image
-                          : `http://localhost:5000${product.image}`
-                      }
+                      src={getImageUrl(product.image)}
                       alt={product.name}
                       className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                     />

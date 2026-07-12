@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Package, ShoppingBag, Users, TrendingUp, X, Shield, BarChart3, Eye, UserCog, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import getImageUrl from '../utils/getImageUrl';
 
 const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -356,7 +357,7 @@ const DashboardPage = () => {
                       {sellerProducts.map((product) => (
                         <tr key={product._id} className="hover:bg-gray-50">
                           <td className="p-4 flex items-center">
-                            <img src={product.image?.startsWith('http') ? product.image : `http://localhost:5000${product.image}`} alt={product.name} className="h-10 w-10 object-contain mr-3" />
+                            <img src={getImageUrl(product.image)} alt={product.name} className="h-10 w-10 object-contain mr-3" />
                             <span className="font-medium truncate max-w-xs">{product.name}</span>
                           </td>
                           <td className="p-4 font-bold text-red-700">₹{product.price.toLocaleString('en-IN')}</td>

@@ -4,6 +4,7 @@ import { Star, ShoppingCart } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { toast } from 'react-toastify';
+import getImageUrl from '../utils/getImageUrl';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const ProductCard = ({ product }) => {
 
       <Link to={`/product/${product._id}`}>
         <img 
-          src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`} 
+          src={getImageUrl(product.image)} 
           alt={product.name} 
           className="h-48 w-48 object-contain mx-auto hover:scale-105 transition-transform duration-300"
         />

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import socket from '../utils/socket';
 import { Package, ChevronRight, ShoppingBag, XCircle, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import getImageUrl from '../utils/getImageUrl';
 
 const MyOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -309,7 +310,7 @@ const MyOrdersPage = () => {
                         <div key={idx} className="flex items-center justify-between">
                           <div className="flex items-center space-x-6">
                             <img
-                              src={item.image?.startsWith('http') ? item.image : `http://localhost:5000${item.image}`}
+                              src={getImageUrl(item.image)}
                               alt={item.name}
                               className={`h-20 w-20 object-contain ${isRejected ? 'opacity-50' : ''}`}
                             />

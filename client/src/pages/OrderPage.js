@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getOrderDetails, payOrder } from '../store/slices/orderSlice';
 import { ShieldCheck, Truck, CreditCard, ChevronLeft, XCircle, Clock, CheckCircle2, AlertTriangle, MessageSquare } from 'lucide-react';
 import { toast } from 'react-toastify';
+import getImageUrl from '../utils/getImageUrl';
 
 const OrderPage = () => {
   const { id } = useParams();
@@ -193,7 +194,7 @@ const OrderPage = () => {
                   <div key={index} className="flex items-center justify-between py-2 border-b last:border-0">
                     <div className="flex items-center space-x-4">
                       <img 
-                        src={item.image?.startsWith('http') ? item.image : `http://localhost:5000${item.image}`} 
+                        src={getImageUrl(item.image)} 
                         alt={item.name} 
                         className={`h-12 w-12 object-contain ${isRejected ? 'opacity-50' : ''}`}
                       />

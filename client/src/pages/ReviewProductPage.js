@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { createProductReview, listProductDetails, resetReviewResult } from '../store/slices/productSlice';
 import { Star } from 'lucide-react';
+import getImageUrl from '../utils/getImageUrl';
 
 const ReviewProductPage = () => {
   const [rating, setRating] = useState(0);
@@ -74,7 +75,7 @@ const ReviewProductPage = () => {
             <div className="flex items-center space-x-6 mb-8 pb-8 border-b border-gray-200">
               {product.image && (
                 <img 
-                  src={product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`} 
+                  src={getImageUrl(product.image)} 
                   alt={product.name} 
                   className="h-24 w-24 object-contain"
                 />

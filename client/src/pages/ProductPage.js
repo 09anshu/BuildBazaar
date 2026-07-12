@@ -16,6 +16,7 @@ import {
   Star
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import getImageUrl from '../utils/getImageUrl';
 
 const ProductPage = () => {
   const [qty, setQty] = useState(1);
@@ -97,13 +98,18 @@ const ProductPage = () => {
     }
   };
 
-  // Mocking multiple images for the carousel
-  const images = product?.image ? [
-    product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`,
-    product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`, // Just duplicating for demo
-    product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`,
-    product.image.startsWith('http') ? product.image : `http://localhost:5000${product.image}`,
-  ] : [];
+  const getSecondaryImages = () => {
+    if (!product || !product.image) return [];
+    const mainImg = getImageUrl(product.image);
+    return [
+      mainImg,
+      mainImg, // Just duplicating for demo
+      mainImg,
+      mainImg,
+    ];
+  };
+
+  const images = getSecondaryImages();
 
   const nextImage = () => setActiveImageIndex((prev) => (prev + 1) % images.length);
   const prevImage = () => setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));

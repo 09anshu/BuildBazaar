@@ -91,8 +91,13 @@ The platform features **three segregated dashboards**, ensuring each team only h
 
 | Tab | Capabilities |
 |-----|-------------|
-| **Order Tracking** | View all standard orders, update delivery status (mark as delivered), payment & delivery status badges |
-| **User Lookup** | Search any user by name, email, or phone number to view account details |
+| **Order Tracking** | View all standard orders, update delivery status, process **cancellations**, process **refunds**, and edit shipping addresses. Features an expandable **Order Timeline**. |
+| **Tickets** | Comprehensive ticketing system. View open/progress/closed tickets, reply directly to customer queries via the built-in communication hub. |
+| **Enquiries** | Dedicated view for managing bulk enquiries without cluttering the main order feed. |
+| **Live Chat** | Real-time chat takeover. View active sessions, claim waiting customers, and provide live assistance via Socket.io. |
+| **User Lookup** | Search any user by name, email, or phone. Features a **"View As" (Impersonation)** mode to see the platform from the customer's perspective. |
+| **FAQ Editor** | Full CMS for creating, categorizing, and publishing Knowledge Base articles visible to end-users on the `/contact-support` page. |
+| **Activity Logs** | System-wide audit trail tracking all major actions (refunds, role changes, order cancellations) with timestamps and agent details. |
 
 > **Restrictions**: Cannot access Quotes Kanban, create discount codes, or delete products.
 
@@ -112,14 +117,15 @@ The platform features **three segregated dashboards**, ensuring each team only h
 ### Users — `/api/users`
 | Method | Endpoint                    | Access  | Description               |
 | ------ | --------------------------- | ------- | ------------------------- |
-| POST   | `/`                         | Public  | Register a new user       |
+| POST   | `/`                         | Public  | Register a new user (Customer/Seller only) |
+| POST   | `/admin-create`             | Admin   | Create a user with any role (Admin/Staff) |
 | POST   | `/login`                    | Public  | Authenticate & get token  |
 | POST   | `/forgot-password`          | Public  | Generate password reset token |
 | PUT    | `/reset-password/:token`    | Public  | Reset password with token |
 | GET    | `/profile`                  | Private | Get user profile          |
 | PUT    | `/profile`                  | Private | Update user profile       |
-| GET    | `/`                         | Admin   | Get all users             |
-| GET    | `/:id`                      | Admin   | Get user by ID            |
+| GET    | `/`                         | Staff   | Get all users             |
+| GET    | `/:id`                      | Staff   | Get user by ID            |
 | PUT    | `/:id`                      | Admin   | Update user (including role) |
 | DELETE | `/:id`                      | Admin   | Delete user               |
 
@@ -141,6 +147,9 @@ The platform features **three segregated dashboards**, ensuring each team only h
 | GET    | `/:id`                      | Private | Get order by ID           |
 | PUT    | `/:id/pay`                  | Private | Mark order as paid        |
 | PUT    | `/:id/deliver`              | Staff   | Mark order as delivered   |
+| PUT    | `/:id/cancel`               | Staff   | Cancel order with reason  |
+| PUT    | `/:id/refund`               | Staff   | Process order refund      |
+| PUT    | `/:id/update-address`       | Staff   | Edit shipping address     |
 | GET    | `/enquiries`                | Sales   | Get active enquiries      |
 | PUT    | `/:id/quote`                | Sales   | Send quote to customer    |
 | PUT    | `/:id/counter`              | Private | Customer proposes counter |
@@ -175,6 +184,17 @@ The platform features **three segregated dashboards**, ensuring each team only h
 | Method | Endpoint                    | Access  | Description               |
 | ------ | --------------------------- | ------- | ------------------------- |
 | POST   | `/`                         | Private | Upload a product image    |
+
+### Support & CRM APIs
+| Method | Endpoint                    | Access  | Description               |
+| ------ | --------------------------- | ------- | ------------------------- |
+| POST   | `/api/tickets`              | Private | Submit a support ticket   |
+| POST   | `/api/tickets/:id/messages` | Private | Reply to a ticket         |
+| GET    | `/api/tickets`              | Staff   | View all tickets          |
+| GET    | `/api/faqs`                 | Public  | Get published FAQs        |
+| POST   | `/api/faqs`                 | Staff   | Create a new FAQ          |
+| GET    | `/api/chat-sessions`        | Staff   | Get active chat sessions  |
+| GET    | `/api/activity-logs`        | Staff   | View system audit trail   |
 
 ---
 

@@ -323,11 +323,6 @@ construction_equip/
    - **Frontend** → http://localhost:3000
    - **Backend API** → http://localhost:5000
 
-### Default Admin Login
-After seeding, log in with:
-- **Email**: `admin@buildbazaar.com`
-- **Password**: `Admin@123`
-
 From the Admin Panel → **Users & Roles** tab, you can create new staff accounts or promote existing users to `sales` / `support` roles.
 
 ---

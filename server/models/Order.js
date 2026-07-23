@@ -99,6 +99,36 @@ const orderSchema = mongoose.Schema(
     deliveredAt: {
       type: Date,
     },
+    isCancelled: {
+      type: Boolean,
+      default: false,
+    },
+    cancelReason: {
+      type: String,
+    },
+    cancelledAt: {
+      type: Date,
+    },
+    cancelledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    refundStatus: {
+      type: String,
+      enum: ['none', 'requested', 'processed', 'rejected'],
+      default: 'none',
+    },
+    refundAmount: {
+      type: Number,
+      default: 0,
+    },
+    refundedAt: {
+      type: Date,
+    },
+    refundedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   {
     timestamps: true,

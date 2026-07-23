@@ -147,7 +147,7 @@ const DashboardPage = () => {
     e.preventDefault();
     try {
       const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
-      await axios.post('/api/users', { name: newUserName, email: newUserEmail, password: newUserPassword, role: newUserRole }, config);
+      await axios.post('/api/users/admin-create', { name: newUserName, email: newUserEmail, password: newUserPassword, role: newUserRole }, config);
       toast.success('User created successfully');
       setShowAddUserForm(false);
       setNewUserName('');

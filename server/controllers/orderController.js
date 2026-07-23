@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const { createNotification } = require('./notificationController');
+const { logActivity } = require('./activityLogController');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -592,4 +593,158 @@ module.exports = {
   getSalesHistory,
   getSalesClosedOrders,
   getStandardOrders,
+};
+
+// @desc    Cancel an order (Support/Admin)
+// @route   PUT /api/orders/:id/cancel
+// @access  Private/Support/Admin
+const cancelOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+  if (order.isDelivered) {
+    return res.status(400).json({ message: 'Cannot cancel a delivered order' });
+  }
+
+  order.isCancelled = true;
+  order.cancelReason = req.body.reason || 'Cancelled by support';
+  order.cancelledAt = Date.now();
+  order.cancelledBy = req.user._id;
+
+  const updatedOrder = await order.save();
+
+  // Log activity
+  await logActivity({
+    entityType: 'Order',
+    entityId: order._id,
+    action: 'Order Cancelled',
+    details: `Reason: ${order.cancelReason}`,
+    performedBy: req.user._id,
+  });
+
+  try {
+    await createNotification(order.user, {
+      type: 'general',
+      title: 'Order Cancelled',
+      message: `Your order #${order._id.toString().slice(-6).toUpperCase()} has been cancelled. Reason: ${order.cancelReason}`,
+      link: `/order/${order._id}`,
+    });
+  } catch (notifError) {
+    console.error('Notification error (cancel):', notifError.message);
+  }
+
+  try {
+    const emitter = req.io || global.io;
+    if (emitter) emitter.to(order.user.toString()).emit('orderStatusChanged', updatedOrder);
+  } catch (emitErr) {
+    console.error('Error emitting orderStatusChanged (cancel):', emitErr.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Process a refund (Support/Admin)
+// @route   PUT /api/orders/:id/refund
+// @access  Private/Support/Admin
+const processRefund = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+  if (!order.isPaid) {
+    return res.status(400).json({ message: 'Order is not paid, cannot refund' });
+  }
+
+  order.refundStatus = req.body.refundStatus || 'processed';
+  order.refundAmount = req.body.refundAmount || order.totalPrice;
+  order.refundedAt = Date.now();
+  order.refundedBy = req.user._id;
+
+  const updatedOrder = await order.save();
+
+  await logActivity({
+    entityType: 'Order',
+    entityId: order._id,
+    action: 'Refund Processed',
+    details: `Amount: ₹${order.refundAmount}. Status: ${order.refundStatus}`,
+    performedBy: req.user._id,
+  });
+
+  try {
+    await createNotification(order.user, {
+      type: 'general',
+      title: 'Refund Processed',
+      message: `A refund of ₹${order.refundAmount?.toLocaleString()} has been processed for order #${order._id.toString().slice(-6).toUpperCase()}.`,
+      link: `/order/${order._id}`,
+    });
+  } catch (notifError) {
+    console.error('Notification error (refund):', notifError.message);
+  }
+
+  res.json(updatedOrder);
+};
+
+// @desc    Update shipping address (Support/Admin)
+// @route   PUT /api/orders/:id/update-address
+// @access  Private/Support/Admin
+const updateShippingAddress = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+
+  if (order.isDelivered) {
+    return res.status(400).json({ message: 'Cannot change address of a delivered order' });
+  }
+
+  const oldAddress = JSON.stringify(order.shippingAddress);
+  order.shippingAddress = {
+    address: req.body.address || order.shippingAddress.address,
+    city: req.body.city || order.shippingAddress.city,
+    postalCode: req.body.postalCode || order.shippingAddress.postalCode,
+    country: req.body.country || order.shippingAddress.country,
+  };
+
+  const updatedOrder = await order.save();
+
+  await logActivity({
+    entityType: 'Order',
+    entityId: order._id,
+    action: 'Shipping Address Updated',
+    details: `Old: ${oldAddress}, New: ${JSON.stringify(order.shippingAddress)}`,
+    performedBy: req.user._id,
+  });
+
+  res.json(updatedOrder);
+};
+
+module.exports = {
+  addOrderItems,
+  getOrderById,
+  updateOrderToPaid,
+  updateOrderToDelivered,
+  getMyOrders,
+  getOrders,
+  createEnquiry,
+  requestItemReturn,
+  getEnquiries,
+  quoteEnquiry,
+  acceptQuote,
+  proposeCounter,
+  salesProposeCounter,
+  acceptCounterBySales,
+  declineCounterBySales,
+  rejectEnquiry,
+  getSalesHistory,
+  getSalesClosedOrders,
+  getStandardOrders,
+  cancelOrder,
+  processRefund,
+  updateShippingAddress,
 };

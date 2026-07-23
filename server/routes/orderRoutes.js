@@ -20,14 +20,17 @@ const {
   getSalesHistory,
   getSalesClosedOrders,
   getStandardOrders,
+  cancelOrder,
+  processRefund,
+  updateShippingAddress,
 } = require('../controllers/orderController');
 const { protect, admin, sales, supportOrAdmin, staff } = require('../middleware/authMiddleware');
 
 // All orders — Admin only
 router.route('/').post(protect, addOrderItems).get(protect, admin, getOrders);
 
-// Enquiry orders — Sales + Admin (Quotes Kanban)
-router.route('/enquiries').get(protect, sales, getEnquiries);
+// Enquiry orders — Sales + Admin + Support (Quotes Kanban & Enquiries Tab)
+router.route('/enquiries').get(protect, staff, getEnquiries);
 router.route('/:id/quote').put(protect, sales, quoteEnquiry);
 router.route('/:id/counter').put(protect, proposeCounter);
 router.route('/:id/counter-by-sales').put(protect, sales, salesProposeCounter);
@@ -53,6 +56,9 @@ router.route('/:id/pay').put(protect, updateOrderToPaid);
 // Mark delivered — Sales + Support + Admin
 router.route('/:id/deliver').put(protect, staff, updateOrderToDelivered);
 router.route('/:id/return-item').put(protect, requestItemReturn);
+router.route('/:id/cancel').put(protect, supportOrAdmin, cancelOrder);
+router.route('/:id/refund').put(protect, supportOrAdmin, processRefund);
+router.route('/:id/update-address').put(protect, supportOrAdmin, updateShippingAddress);
 
 module.exports = router;
 

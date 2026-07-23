@@ -347,6 +347,12 @@ const Navbar = () => {
                       Support Tools
                     </Link>
                   )}
+                  {userInfo.role === 'customer' && (
+                    <Link to="/contact-support" className="flex items-center px-4 py-2 hover:bg-gray-100 text-blue-500">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Contact Support
+                    </Link>
+                  )}
                   <button
                     onClick={logoutHandler}
                     className="flex w-full items-center px-4 py-2 text-left text-red-600 hover:bg-gray-100"

@@ -67,6 +67,42 @@ const registerUser = async (req, res) => {
   }
 };
 
+// @desc    Create a user with any role (admin-only)
+// @route   POST /api/users/admin-create
+// @access  Private/Admin
+const adminCreateUser = async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  const userExists = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+
+  if (userExists) {
+    res.status(400).json({ message: 'User already exists' });
+    return;
+  }
+
+  // Admin can assign any valid role
+  const validRoles = ['customer', 'seller', 'admin', 'sales', 'support'];
+  const assignedRole = (role && validRoles.includes(role)) ? role : 'customer';
+
+  const user = await User.create({
+    name,
+    email,
+    password,
+    role: assignedRole,
+  });
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+  } else {
+    res.status(400).json({ message: 'Invalid user data' });
+  }
+};
+
 // @desc    Start password reset
 // @route   POST /api/users/forgot-password
 // @access  Public
@@ -248,6 +284,7 @@ const updateUser = async (req, res) => {
 module.exports = {
   authUser,
   registerUser,
+  adminCreateUser,
   forgotPassword,
   resetPassword,
   getUserProfile,

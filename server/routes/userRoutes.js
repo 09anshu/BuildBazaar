@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   authUser,
   registerUser,
+  adminCreateUser,
   forgotPassword,
   resetPassword,
   getUserProfile,
@@ -14,7 +15,8 @@ const {
 } = require('../controllers/userController');
 const { protect, admin, supportOrAdmin } = require('../middleware/authMiddleware');
 
-router.route('/').post(registerUser).get(protect, admin, getUsers);
+router.route('/').post(registerUser).get(protect, supportOrAdmin, getUsers);
+router.post('/admin-create', protect, admin, adminCreateUser);
 router.post('/login', authUser);
 router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:token', resetPassword);

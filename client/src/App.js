@@ -29,6 +29,7 @@ import AllProductsPage from './pages/AllProductsPage';
 import ReviewProductPage from './pages/ReviewProductPage';
 import SalesDashboard from './pages/SalesDashboard';
 import SupportDashboard from './pages/SupportDashboard';
+import ContactSupportPage from './pages/ContactSupportPage';
 import InfoPage from './pages/InfoPage';
 
 function App() {
@@ -40,6 +41,7 @@ function App() {
       socket.connect();
       socket.emit('joinRoom', userInfo._id);
       if (userInfo.role === 'sales') socket.emit('joinSalesRoom');
+      if (userInfo.role === 'support') socket.emit('joinSupportRoom');
     } else {
       // disconnect when logged out
       try {
@@ -82,6 +84,7 @@ function App() {
             <Route path="/search/:keyword" element={<HomePage />} />
             <Route path="/category/:category" element={<AllProductsPage />} />
             <Route path="/info/:slug" element={<InfoPage />} />
+            <Route path="/contact-support" element={<ContactSupportPage />} />
           </Routes>
         </main>
         <Footer />

@@ -14,6 +14,10 @@ const orderRoutes = require('./routes/orderRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const offerRoutes = require('./routes/offerRoutes');
+const ticketRoutes = require('./routes/ticketRoutes');
+const faqRoutes = require('./routes/faqRoutes');
+const activityLogRoutes = require('./routes/activityLogRoutes');
+const chatSessionRoutes = require('./routes/chatSessionRoutes');
 
 dotenv.config();
 
@@ -35,6 +39,10 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/faqs', faqRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/chat-sessions', chatSessionRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
@@ -99,6 +107,20 @@ io.on('connection', (socket) => {
   socket.on('joinSalesRoom', () => {
     socket.join('sales');
     console.log(`Socket ${socket.id} joined room:sales`);
+  });
+
+  // Join support room helper
+  socket.on('joinSupportRoom', () => {
+    socket.join('support');
+    console.log(`Socket ${socket.id} joined room:support`);
+  });
+
+  // Join chat-specific room
+  socket.on('joinChatRoom', (sessionId) => {
+    if (sessionId) {
+      socket.join(`chat_${sessionId}`);
+      console.log(`Socket ${socket.id} joined chat room: chat_${sessionId}`);
+    }
   });
 
   socket.on('disconnect', () => { });

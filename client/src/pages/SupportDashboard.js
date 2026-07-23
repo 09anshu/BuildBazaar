@@ -559,8 +559,15 @@ const SupportDashboard = () => {
                           <div className="flex items-center gap-4">
                             <span className={`w-3 h-3 rounded-full ${ticket.status === 'Open' ? 'bg-red-500' : ticket.status === 'In Progress' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                             <div>
-                              <p className="font-bold text-gray-800">{ticket.subject}</p>
-                              <p className="text-xs text-gray-500">{ticket.user?.name} · {new Date(ticket.createdAt).toLocaleDateString()}</p>
+                              <p className="font-bold text-gray-800 flex items-center gap-2">
+                                {ticket.subject}
+                                {ticket.order && (
+                                  <span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase">
+                                    Order #{ticket.order._id?.substring(0, 8)}
+                                  </span>
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500">#{ticket._id.substring(0, 8)} · By {ticket.user?.name} · {new Date(ticket.createdAt).toLocaleDateString()}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">

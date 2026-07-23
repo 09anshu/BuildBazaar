@@ -5,10 +5,11 @@ const Ticket = require('../models/Ticket');
 // @route   POST /api/tickets
 // @access  Private
 const createTicket = asyncHandler(async (req, res) => {
-  const { subject, description } = req.body;
+  const { subject, description, orderId } = req.body;
 
   const ticket = new Ticket({
     user: req.user._id,
+    order: orderId || undefined,
     subject,
     description,
     messages: [
@@ -27,7 +28,7 @@ const createTicket = asyncHandler(async (req, res) => {
 // @route   GET /api/tickets
 // @access  Private/Admin/Support
 const getTickets = asyncHandler(async (req, res) => {
-  const tickets = await Ticket.find({}).populate('user', 'id name email');
+  const tickets = await Ticket.find({}).populate('user', 'id name email').populate('order', '_id createdAt totalPrice');
   res.json(tickets);
 });
 
@@ -35,7 +36,7 @@ const getTickets = asyncHandler(async (req, res) => {
 // @route   GET /api/tickets/my-tickets
 // @access  Private
 const getMyTickets = asyncHandler(async (req, res) => {
-  const tickets = await Ticket.find({ user: req.user._id });
+  const tickets = await Ticket.find({ user: req.user._id }).populate('order', '_id createdAt');
   res.json(tickets);
 });
 
@@ -45,6 +46,7 @@ const getMyTickets = asyncHandler(async (req, res) => {
 const getTicketById = asyncHandler(async (req, res) => {
   const ticket = await Ticket.findById(req.params.id)
     .populate('user', 'name email')
+    .populate('order', '_id createdAt totalPrice')
     .populate('messages.sender', 'name email role');
 
   if (ticket) {

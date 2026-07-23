@@ -8,9 +8,11 @@ import { Send, MessageSquare, ChevronDown, ChevronUp, Plus, ArrowLeft, CheckCirc
 const ContactSupportPage = () => {
   const [tickets, setTickets] = useState([]);
   const [faqs, setFaqs] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [showNewForm, setShowNewForm] = useState(false);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState('');
   const [expandedTicket, setExpandedTicket] = useState(null);
   const [expandedFaq, setExpandedFaq] = useState(null);
   const [replyContent, setReplyContent] = useState('');
@@ -25,6 +27,7 @@ const ContactSupportPage = () => {
     } else {
       fetchMyTickets();
       fetchFaqs();
+      fetchOrders();
     }
   }, [navigate, userInfo]);
 
@@ -54,6 +57,15 @@ const ContactSupportPage = () => {
     }
   };
 
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get('/api/orders/myorders', config());
+      setOrders(res.data);
+    } catch (error) {
+      // ignore
+    }
+  };
+
   const handleSubmitTicket = async (e) => {
     e.preventDefault();
     if (!subject.trim() || !description.trim()) {
@@ -61,10 +73,11 @@ const ContactSupportPage = () => {
       return;
     }
     try {
-      await axios.post('/api/tickets', { subject, description }, config());
+      await axios.post('/api/tickets', { subject, description, orderId: selectedOrder }, config());
       toast.success('Ticket submitted! Our support team will respond soon.');
       setSubject('');
       setDescription('');
+      setSelectedOrder('');
       setShowNewForm(false);
       fetchMyTickets();
     } catch (error) {
@@ -164,6 +177,21 @@ const ContactSupportPage = () => {
                 />
               </div>
               <div>
+                <label className="text-sm font-medium text-gray-600 block mb-1">Related Order (Optional)</label>
+                <select
+                  value={selectedOrder}
+                  onChange={(e) => setSelectedOrder(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                >
+                  <option value="">-- Select an Order --</option>
+                  {orders.map(order => (
+                    <option key={order._id} value={order._id}>
+                      Order #{order._id.substring(0, 8)} - ${order.totalPrice} ({new Date(order.createdAt).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="text-sm font-medium text-gray-600 block mb-1">Description</label>
                 <textarea
                   value={description}
@@ -221,7 +249,14 @@ const ContactSupportPage = () => {
                       <CheckCircle className="h-5 w-5 text-emerald-500" />
                     )}
                     <div>
-                      <p className="font-bold text-gray-800">{ticket.subject}</p>
+                      <p className="font-bold text-gray-800 flex items-center gap-2">
+                        {ticket.subject}
+                        {ticket.order && (
+                          <span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase">
+                            Order #{ticket.order._id?.substring(0, 8)}
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-gray-500">#{ticket._id?.substring(0, 8)} · {new Date(ticket.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>

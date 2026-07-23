@@ -6,6 +6,11 @@ const ticketSchema = mongoose.Schema({
     required: true,
     ref: 'User',
   },
+  order: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: false,
+    ref: 'Order',
+  },
   subject: {
     type: String,
     required: true,

@@ -57,7 +57,6 @@ const MyOrdersPage = () => {
       if (!updatedOrder) return;
       if (updatedOrder.user && updatedOrder.user.toString() === userInfo._id.toString()) {
         fetchOrders();
-        toast.info('A quote has been updated.');
       }
     };
 
@@ -65,7 +64,6 @@ const MyOrdersPage = () => {
       if (!updatedOrder) return;
       if (updatedOrder.user && updatedOrder.user.toString() === userInfo._id.toString()) {
         fetchOrders();
-        toast.info('Order status updated.');
       }
     };
 
@@ -77,7 +75,6 @@ const MyOrdersPage = () => {
         if (updatedOrder.enquiryStatus === 'rejected') {
           toast.error('Your enquiry has been declined by sales.');
         } else if (updatedOrder.enquiryStatus === 'accepted') {
-          toast.success('Your quote has been accepted!');
         }
       }
     };
@@ -97,7 +94,6 @@ const MyOrdersPage = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/orders/${orderId}/accept-quote`, {}, config);
-      toast.success('Quote Accepted!');
       fetchOrders();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to accept this quote right now. Please refresh and try again.');
@@ -131,7 +127,6 @@ const MyOrdersPage = () => {
         reason: returnReason
       }, config);
 
-      toast.success('Return requested successfully');
       setShowReturnModal(false);
       setReturnReason('');
 
@@ -487,7 +482,6 @@ const MyOrdersPage = () => {
                 const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
                 const payload = { counterPrice: counterPrice ? Number(counterPrice) : undefined, counterNotes };
                 await axios.put(`/api/orders/${counterOrderId}/counter`, payload, config);
-                toast.success('Counter proposed to Sales');
                 fetchOrders();
                 setShowCounterModal(false);
                 setCounterPrice('');

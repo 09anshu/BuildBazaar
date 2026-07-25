@@ -53,7 +53,6 @@ const ProfilePage = () => {
         },
       };
       await axios.put('/api/users/profile', { name, email, phone, address }, config);
-      toast.success('Profile updated successfully');
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     } finally {

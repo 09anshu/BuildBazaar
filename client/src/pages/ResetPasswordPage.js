@@ -22,7 +22,6 @@ const ResetPasswordPage = () => {
 
         try {
             await axios.put(`/api/users/reset-password/${token}`, { password });
-            toast.success('Password updated successfully. Please sign in.');
             navigate('/login');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Reset link is invalid or expired.');

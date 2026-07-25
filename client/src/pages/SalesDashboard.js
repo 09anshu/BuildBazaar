@@ -67,13 +67,11 @@ const SalesDashboard = () => {
       fetchEnquiries();
       fetchLiveSheet();
       fetchOrderHistory();
-      toast.info('Enquiry status updated');
     };
 
     const onNewEnquiry = () => {
       fetchEnquiries();
       fetchOrderHistory();
-      toast.info('New enquiry received');
     };
 
     socket.on('enquiryStatusChanged', onEnquiryStatusChanged);
@@ -82,7 +80,6 @@ const SalesDashboard = () => {
     const onQuoteCounterProposed = () => {
       fetchEnquiries();
       fetchOrderHistory();
-      toast.info('Customer proposed a counter-offer');
     };
 
     socket.on('quoteCounterProposed', onQuoteCounterProposed);
@@ -161,7 +158,6 @@ const SalesDashboard = () => {
       setSelectedProducts([]);
       setValidFrom(today);
       setValidUntil(nextWeek);
-      toast.success('Offer created successfully');
     });
   };
 
@@ -207,7 +203,6 @@ const SalesDashboard = () => {
           negotiationNotes: quoteNotes
         }, config);
       }
-      toast.success('Quote sent to customer!');
       setShowQuoteModal(false);
       setIsSalesCounterMode(false);
       fetchEnquiries();
@@ -224,7 +219,6 @@ const SalesDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/orders/${enq._id}/accept-counter`, {}, config);
-      toast.success('Counter accepted');
       fetchEnquiries();
       fetchLiveSheet();
       fetchOrderHistory();
@@ -243,7 +237,6 @@ const SalesDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/orders/${enq._id}/reject`, { reason: 'Sales rejected this enquiry.' }, config);
-      toast.info('Enquiry rejected');
       fetchEnquiries();
       fetchOrderHistory();
     } catch (err) {
@@ -260,7 +253,6 @@ const SalesDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/orders/${enq._id}/decline-counter`, {}, config);
-      toast.info('Counter declined');
       fetchEnquiries();
       fetchOrderHistory();
     } catch (err) {
@@ -296,7 +288,6 @@ const SalesDashboard = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Quotes");
     XLSX.writeFile(wb, "Quotes_Export.xlsx");
-    toast.success('Excel file exported!');
   };
 
   const exportLiveSheetToExcel = () => {
@@ -316,7 +307,6 @@ const SalesDashboard = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Live Sheet');
     XLSX.writeFile(wb, 'Live_Sales_Sheet.xlsx');
-    toast.success('Live sheet exported!');
   };
 
   const getOrderStatusLabel = (order) => {
@@ -370,7 +360,6 @@ const SalesDashboard = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Order History');
     XLSX.writeFile(wb, 'Sales_Order_History.xlsx');
-    toast.success('Order history exported!');
   };
 
   // Stats — computed from the complete order history for accuracy

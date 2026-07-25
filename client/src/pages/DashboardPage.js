@@ -87,7 +87,6 @@ const DashboardPage = () => {
     try {
       const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
       await axios.post('/api/products', { name, price, image, brand, category, countInStock, description }, config);
-      toast.success('Product created');
       setShowAddForm(false);
       fetchData();
     } catch (error) {
@@ -101,7 +100,6 @@ const DashboardPage = () => {
         const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
         await axios.delete(`/api/products/${id}`, config);
         setSellerProducts(sellerProducts.filter((p) => p._id !== id));
-        toast.success('Product deleted');
       } catch (error) {
         toast.error(error.response?.data?.message || error.message);
       }
@@ -112,7 +110,6 @@ const DashboardPage = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/orders/${id}/deliver`, {}, config);
-      toast.success('Order marked as delivered');
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
@@ -124,7 +121,6 @@ const DashboardPage = () => {
       const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
       await axios.put(`/api/users/${userId}`, { role: newRole }, config);
       setAllUsers(allUsers.map(u => u._id === userId ? { ...u, role: newRole } : u));
-      toast.success(`Role updated to ${newRole}`);
     } catch (error) {
       toast.error(error.response?.data?.message || error.message);
     }
@@ -136,7 +132,6 @@ const DashboardPage = () => {
         const config = { headers: { Authorization: `Bearer ${userInfo.token}` } };
         await axios.delete(`/api/users/${userId}`, config);
         setAllUsers(allUsers.filter(u => u._id !== userId));
-        toast.success('User deleted');
       } catch (error) {
         toast.error(error.response?.data?.message || error.message);
       }
@@ -148,7 +143,6 @@ const DashboardPage = () => {
     try {
       const config = { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userInfo.token}` } };
       await axios.post('/api/users/admin-create', { name: newUserName, email: newUserEmail, password: newUserPassword, role: newUserRole }, config);
-      toast.success('User created successfully');
       setShowAddUserForm(false);
       setNewUserName('');
       setNewUserEmail('');

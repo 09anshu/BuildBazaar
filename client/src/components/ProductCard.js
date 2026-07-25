@@ -30,7 +30,6 @@ const ProductCard = ({ product }) => {
       countInStock: product.countInStock,
       qty: 1,
     }));
-    toast.success(`${product.name} added to cart!`);
   };
 
   return (

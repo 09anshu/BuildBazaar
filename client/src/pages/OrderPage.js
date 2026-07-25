@@ -26,7 +26,6 @@ const OrderPage = () => {
       email_address: userInfo.email,
     };
     dispatch(payOrder({ orderId: id, paymentResult }));
-    toast.success('Payment Successful!');
   };
 
   if (!userInfo) return null;

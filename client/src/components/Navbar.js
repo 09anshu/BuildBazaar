@@ -67,19 +67,7 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // Show toast for real-time notifications
-  useEffect(() => {
-    if (!userInfo) return;
 
-    const handler = (notification) => {
-      try {
-        toast.info(notification.title || 'New notification');
-      } catch (err) { }
-    };
-
-    socket.on('newNotification', handler);
-    return () => socket.off('newNotification', handler);
-  }, [userInfo]);
 
   const categoryTabs = [
     { label: 'Cement', to: '/category/Cement', icon: Factory },

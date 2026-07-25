@@ -58,7 +58,6 @@ const SupportDashboard = () => {
   useEffect(() => {
     socket.on('newChatEscalation', () => {
       fetchChatSessions();
-      toast.info('New chat escalation received!');
     });
     socket.on('orderStatusChanged', () => fetchOrders());
 
@@ -166,7 +165,7 @@ const SupportDashboard = () => {
   const markAsDelivered = async (orderId) => {
     try {
       await axios.put(`/api/orders/${orderId}/deliver`, {}, config());
-      toast.success('Order marked as delivered');
+
       fetchOrders();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error updating order status');
@@ -177,7 +176,7 @@ const SupportDashboard = () => {
     if (!showCancelModal) return;
     try {
       await axios.put(`/api/orders/${showCancelModal}/cancel`, { reason: cancelReason }, config());
-      toast.success('Order cancelled');
+
       setShowCancelModal(null);
       setCancelReason('');
       fetchOrders();
@@ -190,7 +189,7 @@ const SupportDashboard = () => {
     if (!showRefundModal) return;
     try {
       await axios.put(`/api/orders/${showRefundModal}/refund`, { refundAmount: Number(refundAmount), refundStatus: 'processed' }, config());
-      toast.success('Refund processed');
+
       setShowRefundModal(null);
       setRefundAmount('');
       fetchOrders();
@@ -203,7 +202,7 @@ const SupportDashboard = () => {
     if (!showAddressModal) return;
     try {
       await axios.put(`/api/orders/${showAddressModal}/update-address`, addressForm, config());
-      toast.success('Address updated');
+
       setShowAddressModal(null);
       setAddressForm({ address: '', city: '', postalCode: '', country: '' });
       fetchOrders();
@@ -218,7 +217,7 @@ const SupportDashboard = () => {
     if (!content?.trim()) return;
     try {
       await axios.post(`/api/tickets/${ticketId}/messages`, { content }, config());
-      toast.success('Reply sent');
+
       setTicketReply(prev => ({ ...prev, [ticketId]: '' }));
       fetchTickets();
     } catch (error) {
@@ -229,7 +228,7 @@ const SupportDashboard = () => {
   const handleTicketStatus = async (ticketId, status) => {
     try {
       await axios.put(`/api/tickets/${ticketId}/status`, { status }, config());
-      toast.success(`Ticket ${status.toLowerCase()}`);
+
       fetchTickets();
     } catch (error) {
       toast.error('Error updating ticket');
@@ -241,10 +240,10 @@ const SupportDashboard = () => {
     try {
       if (editingFaq) {
         await axios.put(`/api/faqs/${editingFaq._id}`, faqForm, config());
-        toast.success('FAQ updated');
+
       } else {
         await axios.post('/api/faqs', faqForm, config());
-        toast.success('FAQ created');
+
       }
       setShowFaqModal(false);
       setEditingFaq(null);
@@ -259,7 +258,7 @@ const SupportDashboard = () => {
     if (!window.confirm('Delete this FAQ?')) return;
     try {
       await axios.delete(`/api/faqs/${id}`, config());
-      toast.success('FAQ deleted');
+
       fetchFaqs();
     } catch (error) {
       toast.error('Error deleting FAQ');
@@ -269,7 +268,7 @@ const SupportDashboard = () => {
   const handleToggleFaqPublish = async (faq) => {
     try {
       await axios.put(`/api/faqs/${faq._id}`, { isPublished: !faq.isPublished }, config());
-      toast.success(faq.isPublished ? 'FAQ unpublished' : 'FAQ published');
+
       fetchFaqs();
     } catch (error) {
       toast.error('Error toggling FAQ');
@@ -280,7 +279,7 @@ const SupportDashboard = () => {
   const handleClaimChat = async (sessionId) => {
     try {
       await axios.put(`/api/chat-sessions/${sessionId}/claim`, {}, config());
-      toast.success('Chat session claimed');
+
       fetchChatSessions();
     } catch (error) {
       toast.error('Error claiming session');
@@ -290,7 +289,7 @@ const SupportDashboard = () => {
   const handleCloseChat = async (sessionId) => {
     try {
       await axios.put(`/api/chat-sessions/${sessionId}/close`, {}, config());
-      toast.success('Chat session closed');
+
       fetchChatSessions();
     } catch (error) {
       toast.error('Error closing session');
@@ -300,7 +299,6 @@ const SupportDashboard = () => {
   // ─── Impersonation ────────────────────────────────────────────
   const handleImpersonate = (user) => {
     setImpersonating(user);
-    toast.info(`Viewing as ${user.name}. This is read-only for support reference.`);
   };
 
   // ─── Stats ────────────────────────────────────────────────────
@@ -322,7 +320,7 @@ const SupportDashboard = () => {
   const sidebarTabs = [
     { key: 'orders', label: 'Order Tracking', icon: Package, badge: pendingDeliveries },
     { key: 'tickets', label: 'Tickets', icon: MessageSquare, badge: openTickets },
-    { key: 'enquiries', label: 'Enquiries', icon: FileText, badge: enquiries.length },
+    { key: 'enquiries', label: 'Enquiries', icon: FileText, badge: enquiries.filter(e => e.enquiryStatus === 'pending').length },
     { key: 'chat', label: 'Live Chat', icon: MessageCircle, badge: waitingChats },
     { key: 'users', label: 'User Lookup', icon: Users },
     { key: 'faqs', label: 'FAQ Editor', icon: BookOpen, badge: faqs.length },

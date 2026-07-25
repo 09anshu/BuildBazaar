@@ -16,7 +16,6 @@ const ForgotPasswordPage = () => {
         try {
             const { data } = await axios.post('/api/users/forgot-password', { email: email.trim().toLowerCase() });
             setResetUrl(`${window.location.origin}/reset-password/${data.resetToken}`);
-            toast.success('Reset link created. Open it below to set a new password.');
         } catch (error) {
             toast.error(
                 error.response?.data?.message || 'Unable to start password reset. Please check the email and try again.'

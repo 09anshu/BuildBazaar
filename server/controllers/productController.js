@@ -9,10 +9,12 @@ const getProducts = async (req, res) => {
 
   const keyword = req.query.keyword
     ? {
-        name: {
-          $regex: req.query.keyword,
-          $options: 'i',
-        },
+        $or: [
+          { name: { $regex: req.query.keyword, $options: 'i' } },
+          { brand: { $regex: req.query.keyword, $options: 'i' } },
+          { category: { $regex: req.query.keyword, $options: 'i' } },
+          { description: { $regex: req.query.keyword, $options: 'i' } },
+        ],
       }
     : {};
 

@@ -31,7 +31,6 @@ const ReviewProductPage = () => {
 
   useEffect(() => {
     if (successReview) {
-      toast.success('Review submitted successfully!');
       dispatch(resetReviewResult());
       navigate(`/product/${productId}`);
     }

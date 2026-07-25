@@ -74,7 +74,6 @@ const ContactSupportPage = () => {
     }
     try {
       await axios.post('/api/tickets', { subject, description, orderId: selectedOrder }, config());
-      toast.success('Ticket submitted! Our support team will respond soon.');
       setSubject('');
       setDescription('');
       setSelectedOrder('');
@@ -89,7 +88,6 @@ const ContactSupportPage = () => {
     if (!replyContent.trim()) return;
     try {
       await axios.post(`/api/tickets/${ticketId}/messages`, { content: replyContent }, config());
-      toast.success('Reply sent');
       setReplyContent('');
       fetchMyTickets();
     } catch (error) {

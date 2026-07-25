@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { savePaymentMethod } from '../store/slices/cartSlice';
 
 const PaymentPage = () => {
-  const { shippingAddress } = useSelector((state) => state.cart);
-  const [paymentMethod, setPaymentMethod] = useState('PayPal');
+  const { shippingAddress, paymentMethod: cartPaymentMethod } = useSelector((state) => state.cart);
+  const [paymentMethod, setPaymentMethod] = useState(cartPaymentMethod === 'PayPal' ? 'Credit/Debit Card' : cartPaymentMethod);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const PaymentPage = () => {
   const submitHandler = (e) => {
     e.preventDefault();
     dispatch(savePaymentMethod(paymentMethod));
-    navigate('/placeorder');
+    navigate('/demo-payment');
   };
 
   return (
@@ -39,31 +39,64 @@ const PaymentPage = () => {
             <div className="flex items-center p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
               <input
                 type="radio"
-                id="PayPal"
+                id="CreditCard"
                 name="paymentMethod"
-                value="PayPal"
-                checked={paymentMethod === 'PayPal'}
+                value="Credit/Debit Card"
+                checked={paymentMethod === 'Credit/Debit Card'}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 className="h-4 w-4 text-amazon_blue focus:ring-amazon_yellow"
               />
-              <label htmlFor="PayPal" className="ml-4 flex-grow cursor-pointer">
-                <p className="font-bold">PayPal or Credit Card</p>
-                <p className="text-xs text-gray-500">Fast, secure and convenient.</p>
+              <label htmlFor="CreditCard" className="ml-4 flex-grow cursor-pointer">
+                <p className="font-bold">Credit / Debit Card</p>
+                <p className="text-xs text-gray-500">Visa, MasterCard, RuPay, Amex.</p>
               </label>
             </div>
 
-            <div className="flex items-center p-4 border rounded-md hover:bg-gray-50 cursor-pointer opacity-50">
+            <div className="flex items-center p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
               <input
                 type="radio"
-                id="Stripe"
+                id="UPI"
                 name="paymentMethod"
-                value="Stripe"
-                disabled
+                value="UPI"
+                checked={paymentMethod === 'UPI'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
                 className="h-4 w-4 text-amazon_blue focus:ring-amazon_yellow"
               />
-              <label htmlFor="Stripe" className="ml-4 flex-grow cursor-pointer">
-                <p className="font-bold">Stripe (Coming Soon)</p>
-                <p className="text-xs text-gray-500">Direct credit card payments.</p>
+              <label htmlFor="UPI" className="ml-4 flex-grow cursor-pointer">
+                <p className="font-bold">UPI</p>
+                <p className="text-xs text-gray-500">Google Pay, PhonePe, Paytm, etc.</p>
+              </label>
+            </div>
+
+            <div className="flex items-center p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                id="EMI"
+                name="paymentMethod"
+                value="EMI"
+                checked={paymentMethod === 'EMI'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="h-4 w-4 text-amazon_blue focus:ring-amazon_yellow"
+              />
+              <label htmlFor="EMI" className="ml-4 flex-grow cursor-pointer">
+                <p className="font-bold">EMI</p>
+                <p className="text-xs text-gray-500">No Cost EMI available on select cards.</p>
+              </label>
+            </div>
+
+            <div className="flex items-center p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                id="PayLater"
+                name="paymentMethod"
+                value="Pay Later"
+                checked={paymentMethod === 'Pay Later'}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="h-4 w-4 text-amazon_blue focus:ring-amazon_yellow"
+              />
+              <label htmlFor="PayLater" className="ml-4 flex-grow cursor-pointer">
+                <p className="font-bold">Pay Later</p>
+                <p className="text-xs text-gray-500">Buy now and pay next month.</p>
               </label>
             </div>
           </div>

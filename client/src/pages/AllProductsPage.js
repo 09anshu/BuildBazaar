@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { listProducts } from '../store/slices/productSlice';
 import { addToCart } from '../store/slices/cartSlice';
@@ -89,8 +89,9 @@ const SORT_OPTIONS = [
 ];
 
 const AllProductsPage = () => {
-  const { category: urlCategory } = useParams();
+  const { category: urlCategory, keyword: urlKeyword } = useParams();
   const dispatch = useDispatch();
+  const location = useLocation();
   const { products, loading, error } = useSelector((state) => state.products);
 
   // Filters
@@ -119,8 +120,8 @@ const AllProductsPage = () => {
   }, [urlCategory]);
 
   useEffect(() => {
-    dispatch(listProducts({ keyword: '', pageNumber: '', category: '', pageSize: 100 }));
-  }, [dispatch]);
+    dispatch(listProducts({ keyword: urlKeyword || '', pageNumber: '', category: urlCategory || '', pageSize: 100 }));
+  }, [dispatch, urlKeyword, urlCategory]);
 
   // Compute available filters based on selected category
   const availableBrands = useMemo(() => {
@@ -167,6 +168,17 @@ const AllProductsPage = () => {
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
+    // Client-side keyword search filtering (supplements server-side filter)
+    if (urlKeyword && urlKeyword.trim()) {
+      const term = urlKeyword.trim().toLowerCase();
+      result = result.filter((p) =>
+        p.name.toLowerCase().includes(term) ||
+        (p.brand && p.brand.toLowerCase().includes(term)) ||
+        (p.category && p.category.toLowerCase().includes(term)) ||
+        (p.description && p.description.toLowerCase().includes(term))
+      );
+    }
+
     if (selectedCategories.length > 0) {
       result = result.filter((p) => selectedCategories.includes(p.category));
     }
@@ -209,7 +221,7 @@ const AllProductsPage = () => {
     }
 
     return result;
-  }, [products, selectedCategories, selectedBrands, selectedTypes, inStockOnly, priceRange, sortBy]);
+  }, [products, urlKeyword, selectedCategories, selectedBrands, selectedTypes, inStockOnly, priceRange, sortBy]);
 
   const addToCartHandler = (product) => {
     dispatch(
@@ -224,7 +236,6 @@ const AllProductsPage = () => {
         qty: 1,
       })
     );
-    toast.success(`${product.name} added to cart!`);
   };
 
   const selectedSortLabel =
@@ -387,11 +398,21 @@ const AllProductsPage = () => {
               <Link to="/" className="hover:text-white transition-colors">Home</Link>
               {' / '}
               <Link to="/all-products" className="hover:text-white transition-colors">All Products</Link>
-              {' / '}
-              <span className="text-[#f5a623]">{urlCategory}</span>
+              {urlCategory && (
+                <>
+                  {' / '}
+                  <span className="text-[#f5a623]">{urlCategory}</span>
+                </>
+              )}
+              {urlKeyword && (
+                <>
+                  {' / '}
+                  <span className="text-[#f5a623]">Search: "{urlKeyword}"</span>
+                </>
+              )}
             </p>
             <h1 className="text-3xl font-black text-white">
-              {urlCategory}
+              {urlKeyword ? `Results for "${urlKeyword}"` : urlCategory}
             </h1>
             <p className="text-sm text-white/60 mt-1">
               {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found

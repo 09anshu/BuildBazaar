@@ -31,7 +31,8 @@ import SalesDashboard from './pages/SalesDashboard';
 import SupportDashboard from './pages/SupportDashboard';
 import ContactSupportPage from './pages/ContactSupportPage';
 import InfoPage from './pages/InfoPage';
-
+import DemoPaymentPage from './pages/DemoPaymentPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 function App() {
   const { userInfo } = useSelector((state) => state.auth);
 
@@ -71,6 +72,8 @@ function App() {
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/shipping" element={<ShippingPage />} />
             <Route path="/payment" element={<PaymentPage />} />
+            <Route path="/demo-payment" element={<DemoPaymentPage />} />
+            <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/placeorder" element={<PlaceOrderPage />} />
             <Route path="/order/:id" element={<OrderPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -81,7 +84,7 @@ function App() {
 
             {/* Search, Category, and All Products routes */}
             <Route path="/all-products" element={<AllProductsPage />} />
-            <Route path="/search/:keyword" element={<HomePage />} />
+            <Route path="/search/:keyword" element={<AllProductsPage />} />
             <Route path="/category/:category" element={<AllProductsPage />} />
             <Route path="/info/:slug" element={<InfoPage />} />
             <Route path="/contact-support" element={<ContactSupportPage />} />

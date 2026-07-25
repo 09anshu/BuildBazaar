@@ -20,7 +20,7 @@ const CartPage = () => {
   };
 
   const checkoutHandler = () => {
-    navigate('/login?redirect=shipping');
+    navigate('/login?redirect=/shipping');
   };
 
   const handleApplyCoupon = async (e) => {
@@ -33,7 +33,6 @@ const CartPage = () => {
       if (validateCoupon.fulfilled.match(resultAction)) {
         dispatch(applyCoupon(resultAction.payload));
         setCouponCode('');
-        toast.success('Coupon applied successfully!');
       } else {
         toast.error(resultAction.payload || 'Invalid coupon code');
       }
@@ -44,7 +43,6 @@ const CartPage = () => {
 
   const handleRemoveCoupon = () => {
     dispatch(removeCoupon());
-    toast.info('Coupon removed');
   };
 
   const itemsPrice = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);

@@ -51,7 +51,6 @@ const ProductPage = () => {
       countInStock: product.countInStock,
       qty,
     }));
-    toast.success(`${product.name} added to cart!`);
     navigate('/cart');
   };
 
@@ -79,7 +78,6 @@ const ProductPage = () => {
         customNotes: enquiryNotes
       }, config);
       
-      toast.success('Bulk enquiry submitted successfully! Check your dashboard.');
       setShowEnquiry(false);
       setEnquiryQty('');
       setEnquiryNotes('');
